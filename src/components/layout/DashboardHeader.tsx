@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, Search, Plus, Moon, Sun } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function DashboardHeader() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
+  const { user } = useAuth();
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';

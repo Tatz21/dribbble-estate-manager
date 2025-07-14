@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
   {
@@ -123,6 +124,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user, logout } = useAuth();
 
   const isActive = (path: string) => currentPath === path;
   const isGroupActive = (items: any[]) => items?.some(item => isActive(item.url));
@@ -213,16 +215,16 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent/30">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarFallback>{user?.name?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
           </Avatar>
           {state === "expanded" && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">John Doe</p>
-              <p className="text-xs text-sidebar-foreground/60 truncate">Admin</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.name}</p>
+              <p className="text-xs text-sidebar-foreground/60 truncate capitalize">{user?.role}</p>
             </div>
           )}
           {state === "expanded" && (
-            <Button variant="ghost" size="sm" className="p-1 h-auto">
+            <Button variant="ghost" size="sm" className="p-1 h-auto" onClick={logout}>
               <LogOut className="h-4 w-4" />
             </Button>
           )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useAuth } from '@/contexts/AuthContext';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { RecentProperties } from '@/components/dashboard/RecentProperties';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -7,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Calendar, TrendingUp } from 'lucide-react';
 
 const Index = () => {
+  const { user } = useAuth();
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -14,7 +17,7 @@ const Index = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Welcome back, John! 👋
+              Welcome back, {user?.name?.split(' ')[0] || 'User'}! 👋
             </h1>
             <p className="text-muted-foreground mt-1">
               Here's what's happening with your real estate business today.
