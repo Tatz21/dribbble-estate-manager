@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Search, Plus, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 export function DashboardHeader() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -37,10 +39,32 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="default" size="sm" className="btn-gradient">
-          <Plus className="h-4 w-4 mr-2" />
-          Quick Add
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default" size="sm" className="btn-gradient">
+              <Plus className="h-4 w-4 mr-2" />
+              Quick Add
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => navigate('/properties/add')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Property
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/clients/add')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Client
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/meetings/schedule')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Schedule Meeting
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/agents/add')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Agent
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Button
           variant="ghost"

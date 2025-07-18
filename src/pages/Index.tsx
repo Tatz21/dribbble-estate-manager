@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { StatsCards } from '@/components/dashboard/StatsCards';
@@ -9,6 +10,7 @@ import { Plus, Calendar, TrendingUp } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   return (
     <DashboardLayout>
@@ -25,11 +27,11 @@ const Index = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => navigate('/meetings/schedule')}>
               <Calendar className="h-4 w-4 mr-2" />
               Schedule Meeting
             </Button>
-            <Button className="btn-gradient">
+            <Button className="btn-gradient" onClick={() => navigate('/properties/add')}>
               <Plus className="h-4 w-4 mr-2" />
               Add Property
             </Button>
@@ -52,19 +54,19 @@ const Index = () => {
             <div className="card-modern p-6">
               <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2" onClick={() => navigate('/clients/add')}>
                   <Plus className="h-5 w-5" />
                   <span className="text-sm">Add Client</span>
                 </Button>
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2" onClick={() => navigate('/meetings/schedule')}>
                   <Calendar className="h-5 w-5" />
                   <span className="text-sm">Schedule Visit</span>
                 </Button>
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2" onClick={() => navigate('/analytics')}>
                   <TrendingUp className="h-5 w-5" />
                   <span className="text-sm">View Analytics</span>
                 </Button>
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2" onClick={() => navigate('/leads')}>
                   <Plus className="h-5 w-5" />
                   <span className="text-sm">Add Lead</span>
                 </Button>
