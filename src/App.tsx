@@ -8,10 +8,13 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import AddProperty from "./pages/AddProperty";
+import PropertyTypes from "./pages/PropertyTypes";
 import Clients from "./pages/Clients";
+import AddClient from "./pages/AddClient";
 import Meetings from "./pages/Meetings";
 import ScheduleMeeting from "./pages/ScheduleMeeting";
 import Leads from "./pages/Leads";
+import LeadsPipeline from "./pages/LeadsPipeline";
 import Agents from "./pages/Agents";
 import AddAgent from "./pages/AddAgent";
 import Inventory from "./pages/Inventory";
@@ -34,10 +37,13 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
             <Route path="/properties/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
+            <Route path="/properties/types" element={<ProtectedRoute><PropertyTypes /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+            <Route path="/clients/add" element={<ProtectedRoute><AddClient /></ProtectedRoute>} />
             <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
             <Route path="/meetings/schedule" element={<ProtectedRoute><ScheduleMeeting /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
+            <Route path="/leads/pipeline" element={<ProtectedRoute><LeadsPipeline /></ProtectedRoute>} />
             <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
             <Route path="/agents/add" element={<ProtectedRoute><AddAgent /></ProtectedRoute>} />
             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
