@@ -1,111 +1,122 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Building2, Users, Phone, Calendar } from 'lucide-react';
-
-const activities = [
-  {
-    id: 1,
-    type: "property_inquiry",
-    title: "New property inquiry",
-    description: "John Smith inquired about 3BHK in Bandra",
-    user: "John Smith",
-    time: "5 minutes ago",
-    icon: Building2,
-    status: "new"
-  },
-  {
-    id: 2,
-    type: "client_added",
-    title: "New client registered",
-    description: "Sarah Johnson registered as a buyer",
-    user: "Sarah Johnson",
-    time: "15 minutes ago",
-    icon: Users,
-    status: "completed"
-  },
-  {
-    id: 3,
-    type: "call_completed",
-    title: "Follow-up call completed",
-    description: "Called Rahul Mehta for site visit confirmation",
-    user: "Agent: Priya",
-    time: "1 hour ago",
-    icon: Phone,
-    status: "completed"
-  },
-  {
-    id: 4,
-    type: "meeting_scheduled",
-    title: "Site visit scheduled",
-    description: "Meeting scheduled with the Kumar family",
-    user: "Agent: Rajesh",
-    time: "2 hours ago",
-    icon: Calendar,
-    status: "pending"
-  },
-  {
-    id: 5,
-    type: "property_sold",
-    title: "Property sold",
-    description: "2BHK apartment in Andheri sold successfully",
-    user: "Agent: Amit",
-    time: "3 hours ago",
-    icon: Building2,
-    status: "completed"
-  }
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 export function RecentActivity() {
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey: ['recent-activity'],
+    queryFn: async () => {
+      // Get recent properties, clients, and meetings for activity feed
+      const [propertiesRes, clientsRes, meetingsRes] = await Promise.all([
+        supabase
+          .from('properties')
+          .select('*, agent:profiles(*)')
+          .order('created_at', { ascending: false })
+          .limit(2),
+        supabase
+          .from('clients')
+          .select('*, agent:profiles(*)')
+          .order('created_at', { ascending: false })
+          .limit(2),
+        supabase
+          .from('meetings')
+          .select('*, agent:profiles(*)')
+          .order('created_at', { ascending: false })
+          .limit(2)
+      ]);
+
+      const activities = [];
+      
+      if (propertiesRes.data) {
+        activities.push(...propertiesRes.data.map(property => ({
+          id: `property-${property.id}`,
+          user: property.agent?.full_name || 'Unknown Agent',
+          action: 'added a new property',
+          target: property.title,
+          time: formatDistanceToNow(new Date(property.created_at), { addSuffix: true }),
+          avatar: property.agent?.avatar_url
+        })));
+      }
+
+      if (clientsRes.data) {
+        activities.push(...clientsRes.data.map(client => ({
+          id: `client-${client.id}`,
+          user: client.agent?.full_name || 'Unknown Agent',
+          action: 'added a new client',
+          target: client.full_name,
+          time: formatDistanceToNow(new Date(client.created_at), { addSuffix: true }),
+          avatar: client.agent?.avatar_url
+        })));
+      }
+
+      if (meetingsRes.data) {
+        activities.push(...meetingsRes.data.map(meeting => ({
+          id: `meeting-${meeting.id}`,
+          user: meeting.agent?.full_name || 'Unknown Agent',
+          action: 'scheduled a meeting',
+          target: meeting.title,
+          time: formatDistanceToNow(new Date(meeting.created_at), { addSuffix: true }),
+          avatar: meeting.agent?.avatar_url
+        })));
+      }
+
+      return activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4 animate-pulse">
+                <div className="h-8 w-8 bg-muted rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="card-modern">
+    <Card>
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {activities.map((activity, index) => (
-          <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-            <div className={`p-2 rounded-full ${
-              activity.status === 'new' ? 'bg-blue-500/10 text-blue-600' :
-              activity.status === 'completed' ? 'bg-green-500/10 text-green-600' :
-              'bg-yellow-500/10 text-yellow-600'
-            }`}>
-              <activity.icon className="h-4 w-4" />
-            </div>
-            
-            <div className="flex-1 min-w-0 space-y-1">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">{activity.title}</p>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${
-                    activity.status === 'new' ? 'border-blue-200 text-blue-600' :
-                    activity.status === 'completed' ? 'border-green-200 text-green-600' :
-                    'border-yellow-200 text-yellow-600'
-                  }`}
-                >
-                  {activity.status}
-                </Badge>
-              </div>
-              
-              <p className="text-xs text-muted-foreground">{activity.description}</p>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback className="text-xs">
-                      {activity.user.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs text-muted-foreground">{activity.user}</span>
+      <CardContent>
+        <div className="space-y-4">
+          {activities.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No recent activity</p>
+          ) : (
+            activities.map((activity) => (
+              <div key={activity.id} className="flex items-center space-x-4">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={activity.avatar} />
+                  <AvatarFallback>{activity.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">
+                    <span className="font-medium">{activity.user}</span>{' '}
+                    {activity.action}{' '}
+                    <span className="font-medium">{activity.target}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">{activity.time}</p>
                 </div>
-                <span className="text-xs text-muted-foreground">{activity.time}</span>
               </div>
-            </div>
-          </div>
-        ))}
+            ))
+          )}
+        </div>
       </CardContent>
     </Card>
   );

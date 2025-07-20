@@ -215,12 +215,12 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent/30">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback>{user?.name?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
+            <AvatarFallback>U</AvatarFallback>
           </Avatar>
           {state === "expanded" && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.name}</p>
-              <p className="text-xs text-sidebar-foreground/60 truncate capitalize">{user?.role}</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.email}</p>
+              <p className="text-xs text-sidebar-foreground/60 truncate capitalize">Agent</p>
             </div>
           )}
           {state === "expanded" && (
