@@ -9,10 +9,12 @@ import { Link } from 'react-router-dom';
 import { useMeetings } from '@/hooks/useSupabaseQuery';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { CalendarView } from '@/components/CalendarView';
 
 export default function Meetings() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [showCalendar, setShowCalendar] = useState(false);
   const { data: meetings = [], isLoading, refetch } = useMeetings();
   const { toast } = useToast();
   const handleDeleteMeeting = async (meetingId: string) => {
@@ -144,7 +146,7 @@ export default function Meetings() {
                 <option value="site_visit">Site Visit</option>
               </select>
               
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setShowCalendar(true)}>
                 <Calendar className="h-4 w-4 mr-2" />
                 Calendar View
               </Button>
@@ -273,6 +275,14 @@ export default function Meetings() {
             })
           )}
         </div>
+
+        {/* Calendar View Modal */}
+        {showCalendar && (
+          <CalendarView 
+            meetings={meetings} 
+            onClose={() => setShowCalendar(false)} 
+          />
+        )}
       </div>
     </DashboardLayout>
   );
