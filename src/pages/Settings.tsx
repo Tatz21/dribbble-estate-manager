@@ -7,9 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Settings as SettingsIcon, User, Bell, Shield, Building, Palette } from 'lucide-react';
+import { Save, Settings as SettingsIcon, User, Bell, Shield, Building, Palette, Eye, EyeOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
+  const { toast } = useToast();
+  
   const [profile, setProfile] = useState({
     name: 'Admin User',
     email: 'admin@realestate.com',
@@ -37,8 +40,63 @@ export default function Settings() {
     reraNumber: 'MH12345678'
   });
 
+  const [security, setSecurity] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  const [appearance, setAppearance] = useState({
+    theme: 'light',
+    language: 'en',
+    dateFormat: 'dd/mm/yyyy',
+    currency: 'inr'
+  });
+
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+
   const handleSave = () => {
-    console.log('Settings saved');
+    // Here you would normally save to database
+    toast({
+      title: "Settings saved",
+      description: "All your settings have been successfully updated.",
+    });
+  };
+
+  const handlePasswordUpdate = () => {
+    if (security.newPassword !== security.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (security.newPassword.length < 6) {
+      toast({
+        title: "Error", 
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Here you would update the password
+    toast({
+      title: "Password updated",
+      description: "Your password has been successfully changed.",
+    });
+    
+    setSecurity({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
   };
 
   return (
@@ -296,17 +354,68 @@ export default function Settings() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="current-password">Current Password</Label>
-                  <Input id="current-password" type="password" />
+                  <div className="relative">
+                    <Input 
+                      id="current-password" 
+                      type={showPasswords.current ? "text" : "password"}
+                      value={security.currentPassword}
+                      onChange={(e) => setSecurity({...security, currentPassword: e.target.value})}
+                      placeholder="Enter current password"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPasswords({...showPasswords, current: !showPasswords.current})}
+                    >
+                      {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="new-password">New Password</Label>
-                  <Input id="new-password" type="password" />
+                  <div className="relative">
+                    <Input 
+                      id="new-password" 
+                      type={showPasswords.new ? "text" : "password"}
+                      value={security.newPassword}
+                      onChange={(e) => setSecurity({...security, newPassword: e.target.value})}
+                      placeholder="Enter new password"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
+                    >
+                      {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="confirm-password">Confirm New Password</Label>
-                  <Input id="confirm-password" type="password" />
+                  <div className="relative">
+                    <Input 
+                      id="confirm-password" 
+                      type={showPasswords.confirm ? "text" : "password"}
+                      value={security.confirmPassword}
+                      onChange={(e) => setSecurity({...security, confirmPassword: e.target.value})}
+                      placeholder="Confirm new password"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPasswords({...showPasswords, confirm: !showPasswords.confirm})}
+                    >
+                      {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
-                <Button className="btn-gradient">
+                <Button onClick={handlePasswordUpdate} className="btn-gradient">
                   Update Password
                 </Button>
               </CardContent>
@@ -328,23 +437,49 @@ export default function Settings() {
                   <p className="text-sm text-muted-foreground mb-3">Choose your preferred theme</p>
                   <div className="flex gap-4">
                     <div className="flex items-center space-x-2">
-                      <input type="radio" id="light" name="theme" value="light" />
+                      <input 
+                        type="radio" 
+                        id="light" 
+                        name="theme" 
+                        value="light"
+                        checked={appearance.theme === 'light'}
+                        onChange={(e) => setAppearance({...appearance, theme: e.target.value})}
+                      />
                       <label htmlFor="light">Light</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <input type="radio" id="dark" name="theme" value="dark" />
+                      <input 
+                        type="radio" 
+                        id="dark" 
+                        name="theme" 
+                        value="dark"
+                        checked={appearance.theme === 'dark'}
+                        onChange={(e) => setAppearance({...appearance, theme: e.target.value})}
+                      />
                       <label htmlFor="dark">Dark</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <input type="radio" id="system" name="theme" value="system" />
+                      <input 
+                        type="radio" 
+                        id="system" 
+                        name="theme" 
+                        value="system"
+                        checked={appearance.theme === 'system'}
+                        onChange={(e) => setAppearance({...appearance, theme: e.target.value})}
+                      />
                       <label htmlFor="system">System</label>
                     </div>
                   </div>
                 </div>
                 
                 <div>
-                  <Label>Language</Label>
-                  <select className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2">
+                  <Label htmlFor="language">Language</Label>
+                  <select 
+                    id="language"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2"
+                    value={appearance.language}
+                    onChange={(e) => setAppearance({...appearance, language: e.target.value})}
+                  >
                     <option value="en">English</option>
                     <option value="hi">Hindi</option>
                     <option value="mr">Marathi</option>
@@ -353,8 +488,13 @@ export default function Settings() {
                 </div>
                 
                 <div>
-                  <Label>Date Format</Label>
-                  <select className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2">
+                  <Label htmlFor="date-format">Date Format</Label>
+                  <select 
+                    id="date-format"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2"
+                    value={appearance.dateFormat}
+                    onChange={(e) => setAppearance({...appearance, dateFormat: e.target.value})}
+                  >
                     <option value="dd/mm/yyyy">DD/MM/YYYY</option>
                     <option value="mm/dd/yyyy">MM/DD/YYYY</option>
                     <option value="yyyy-mm-dd">YYYY-MM-DD</option>
@@ -362,8 +502,13 @@ export default function Settings() {
                 </div>
                 
                 <div>
-                  <Label>Currency</Label>
-                  <select className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2" defaultValue="inr">
+                  <Label htmlFor="currency">Currency</Label>
+                  <select 
+                    id="currency"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2"
+                    value={appearance.currency}
+                    onChange={(e) => setAppearance({...appearance, currency: e.target.value})}
+                  >
                     <option value="inr">INR (₹)</option>
                     <option value="usd">USD ($)</option>
                     <option value="eur">EUR (€)</option>
