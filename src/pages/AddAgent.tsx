@@ -5,12 +5,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, Briefcase } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, Briefcase, Plus, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCreateAgent } from '@/hooks/useSupabaseQuery';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AddAgent() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const createAgent = useCreateAgent();
+
   const [formData, setFormData] = useState({
-    name: '',
+    full_name: '',
     email: '',
     phone: '',
     role: '',
@@ -21,15 +27,67 @@ export default function AddAgent() {
     notes: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [specializationInput, setSpecializationInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Agent data:', formData);
-    // Handle form submission
+    setIsSubmitting(true);
+    
+    try {
+      const agentData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone || null,
+        role: formData.role,
+        specialization: formData.specialization,
+        address: formData.address || null,
+        experience: formData.experience ? parseInt(formData.experience) : null,
+        qualifications: formData.qualifications || null,
+        notes: formData.notes || null,
+        status: 'active'
+      };
+
+      await createAgent.mutateAsync(agentData);
+      
+      toast({
+        title: "Agent added successfully",
+        description: "The new team member has been added to your organization.",
+      });
+      
+      navigate('/agents');
+    } catch (error) {
+      console.error('Error adding agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add agent. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const addSpecialization = () => {
+    if (specializationInput.trim() && !formData.specialization.includes(specializationInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        specialization: [...prev.specialization, specializationInput.trim()]
+      }));
+      setSpecializationInput('');
+    }
+  };
+
+  const removeSpecialization = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      specialization: prev.specialization.filter((_, i) => i !== index)
+    }));
   };
 
   return (
@@ -61,12 +119,12 @@ export default function AddAgent() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="full_name">Full Name *</Label>
                   <Input
-                    id="name"
-                    name="name"
+                    id="full_name"
+                    name="full_name"
                     placeholder="Enter full name"
-                    value={formData.name}
+                    value={formData.full_name}
                     onChange={handleInputChange}
                     required
                   />
@@ -149,19 +207,32 @@ export default function AddAgent() {
                 </div>
                 <div>
                   <Label htmlFor="specialization">Specialization</Label>
-                  <select
-                    id="specialization"
-                    name="specialization"
-                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
-                    value={formData.specialization}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Select Specialization</option>
-                    <option value="Residential">Residential</option>
-                    <option value="Commercial">Commercial</option>
-                    <option value="Luxury">Luxury</option>
-                    <option value="Plots">Plots</option>
-                  </select>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add specialization (e.g., Residential, Commercial)"
+                      value={specializationInput}
+                      onChange={(e) => setSpecializationInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialization())}
+                    />
+                    <Button type="button" onClick={addSpecialization}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.specialization.map((spec, index) => (
+                      <div key={index} className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                        {spec}
+                        <button
+                          type="button"
+                          onClick={() => removeSpecialization(index)}
+                          className="hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
               
@@ -196,9 +267,9 @@ export default function AddAgent() {
             <Link to="/agents">
               <Button variant="outline">Cancel</Button>
             </Link>
-            <Button type="submit" className="btn-gradient">
+            <Button type="submit" className="btn-gradient" disabled={isSubmitting || !formData.full_name || !formData.email || !formData.role}>
               <Save className="h-4 w-4 mr-2" />
-              Save Agent
+              {isSubmitting ? 'Adding Agent...' : 'Save Agent'}
             </Button>
           </div>
         </form>

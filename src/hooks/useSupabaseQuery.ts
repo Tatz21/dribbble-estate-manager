@@ -218,3 +218,39 @@ export function useCreateMeeting() {
     }
   });
 }
+
+// Agents queries
+export function useAgents() {
+  return useQuery({
+    queryKey: ['agents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+}
+
+export function useCreateAgent() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (agent: any) => {
+      const { data, error } = await supabase
+        .from('agents')
+        .insert([agent])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
+    }
+  });
+}

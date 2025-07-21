@@ -6,69 +6,61 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, Filter, Phone, Mail, User, Trophy, TrendingUp, Eye, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAgents } from '@/hooks/useSupabaseQuery';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock data
-const agents = [
-  {
-    id: 1,
-    name: "Rajesh Kumar",
-    email: "rajesh@realestate.com",
-    phone: "+91 98765 43210",
-    role: "Senior Agent",
-    status: "Active",
-    performance: {
-      deals: 24,
-      revenue: "₹12.5 Cr",
-      rating: 4.8,
-      target: 85
-    },
-    specialization: ["Residential", "Commercial"],
-    joinDate: "2022-01-15"
-  },
-  {
-    id: 2,
-    name: "Priya Sharma",
-    email: "priya@realestate.com",
-    phone: "+91 98765 43211",
-    role: "Agent",
-    status: "Active",
-    performance: {
-      deals: 18,
-      revenue: "₹8.2 Cr",
-      rating: 4.6,
-      target: 72
-    },
-    specialization: ["Residential", "Luxury"],
-    joinDate: "2022-06-20"
-  },
-  {
-    id: 3,
-    name: "Amit Singh",
-    email: "amit@realestate.com",
-    phone: "+91 98765 43212",
-    role: "Junior Agent",
-    status: "On Leave",
-    performance: {
-      deals: 12,
-      revenue: "₹4.8 Cr",
-      rating: 4.3,
-      target: 48
-    },
-    specialization: ["Commercial", "Plots"],
-    joinDate: "2023-03-10"
-  }
-];
 
 export default function Agents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
+  const { toast } = useToast();
+  const { data: agents = [], isLoading, refetch } = useAgents();
+
+  const handleDeleteAgent = async (agentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', agentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Agent deleted",
+        description: "The agent has been successfully removed.",
+      });
+      
+      refetch();
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete agent. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const filteredAgents = agents.filter(agent => {
-    const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = agent.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         agent.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = !selectedRole || agent.role === selectedRole;
     return matchesSearch && matchesRole;
   });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Agents & Staff</h1>
+            <p className="text-muted-foreground mt-1">Loading agents...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -82,12 +74,20 @@ export default function Agents() {
             </p>
           </div>
           
-          <Link to="/agents/add">
-            <Button className="btn-gradient">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Agent
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/agents/performance">
+              <Button variant="outline">
+                <Trophy className="h-4 w-4 mr-2" />
+                View Performance
+              </Button>
+            </Link>
+            <Link to="/agents/add">
+              <Button className="btn-gradient">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Agent
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Filters */}
@@ -125,88 +125,105 @@ export default function Agents() {
 
         {/* Agent Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAgents.map((agent) => (
-            <Card key={agent.id} className="card-modern group">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <User className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{agent.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{agent.role}</p>
-                    </div>
-                  </div>
-                  <Badge 
-                    className={`${
-                      agent.status === 'Active' ? 'bg-success' : 'bg-warning'
-                    }`}
-                  >
-                    {agent.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    {agent.email}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    {agent.phone}
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {agent.specialization.map((spec) => (
-                      <Badge key={spec} variant="secondary" className="text-xs">
-                        {spec}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <div className="bg-muted/50 rounded-lg p-3 mt-4">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Trophy className="h-3 w-3 text-primary" />
-                        <span className="text-muted-foreground">Deals:</span>
-                        <span className="font-semibold">{agent.performance.deals}</span>
+          {filteredAgents.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <User className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <p className="text-lg font-medium text-foreground mb-2">No agents found</p>
+              <p className="text-muted-foreground mb-4">
+                {agents.length === 0 ? "Start by adding your first team member" : "Try adjusting your search filters"}
+              </p>
+              <Link to="/agents/add">
+                <Button className="btn-gradient">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Agent
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            filteredAgents.map((agent) => (
+              <Card key={agent.id} className="card-modern group">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                        <User className="h-6 w-6 text-primary" />
                       </div>
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3 text-success" />
-                        <span className="text-muted-foreground">Revenue:</span>
-                        <span className="font-semibold">{agent.performance.revenue}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-muted-foreground">Rating:</span>
-                        <span className="font-semibold">{agent.performance.rating}/5</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-muted-foreground">Target:</span>
-                        <span className="font-semibold">{agent.performance.target}%</span>
+                      <div>
+                        <CardTitle className="text-lg">{agent.full_name || 'Unnamed Agent'}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{agent.role}</p>
                       </div>
                     </div>
+                    <Badge 
+                      className={`${
+                        agent.status === 'active' ? 'bg-success' : 
+                        agent.status === 'on_leave' ? 'bg-warning' : 'bg-muted'
+                      }`}
+                    >
+                      {agent.status === 'active' ? 'Active' : 
+                       agent.status === 'on_leave' ? 'On Leave' : 'Inactive'}
+                    </Badge>
                   </div>
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <div className="space-y-4">
+                    {agent.email && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        {agent.email}
+                      </div>
+                    )}
+                    {agent.phone && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="h-4 w-4" />
+                        {agent.phone}
+                      </div>
+                    )}
+                    
+                    {agent.specialization && agent.specialization.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        {agent.specialization.map((spec) => (
+                          <Badge key={spec} variant="secondary" className="text-xs">
+                            {spec}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {agent.experience && (
+                      <div className="bg-muted/50 rounded-lg p-3 mt-4">
+                        <div className="text-sm">
+                          <div className="flex items-center gap-1">
+                            <Trophy className="h-3 w-3 text-primary" />
+                            <span className="text-muted-foreground">Experience:</span>
+                            <span className="font-semibold">{agent.experience} years</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2 mt-4">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteAgent(agent.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </DashboardLayout>
