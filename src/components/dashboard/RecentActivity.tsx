@@ -12,17 +12,17 @@ export function RecentActivity() {
       const [propertiesRes, clientsRes, meetingsRes] = await Promise.all([
         supabase
           .from('properties')
-          .select('*, agent:profiles(*)')
+          .select('*, agent:agents(*)')
           .order('created_at', { ascending: false })
           .limit(2),
         supabase
           .from('clients')
-          .select('*, agent:profiles(*)')
+          .select('*, agent:agents(*)')
           .order('created_at', { ascending: false })
           .limit(2),
         supabase
           .from('meetings')
-          .select('*, agent:profiles(*)')
+          .select('*, agent:agents(*)')
           .order('created_at', { ascending: false })
           .limit(2)
       ]);
@@ -32,33 +32,33 @@ export function RecentActivity() {
       if (propertiesRes.data) {
         activities.push(...propertiesRes.data.map(property => ({
           id: `property-${property.id}`,
-          user: property.agent?.full_name || 'Unknown Agent',
+          user: (property as any).agent?.full_name || 'Unknown Agent',
           action: 'added a new property',
           target: property.title,
           time: formatDistanceToNow(new Date(property.created_at), { addSuffix: true }),
-          avatar: property.agent?.avatar_url
+          avatar: null
         })));
       }
 
       if (clientsRes.data) {
         activities.push(...clientsRes.data.map(client => ({
           id: `client-${client.id}`,
-          user: client.agent?.full_name || 'Unknown Agent',
+          user: (client as any).agent?.full_name || 'Unknown Agent',
           action: 'added a new client',
           target: client.full_name,
           time: formatDistanceToNow(new Date(client.created_at), { addSuffix: true }),
-          avatar: client.agent?.avatar_url
+          avatar: null
         })));
       }
 
       if (meetingsRes.data) {
         activities.push(...meetingsRes.data.map(meeting => ({
           id: `meeting-${meeting.id}`,
-          user: meeting.agent?.full_name || 'Unknown Agent',
+          user: (meeting as any).agent?.full_name || 'Unknown Agent',
           action: 'scheduled a meeting',
           target: meeting.title,
           time: formatDistanceToNow(new Date(meeting.created_at), { addSuffix: true }),
-          avatar: meeting.agent?.avatar_url
+          avatar: null
         })));
       }
 

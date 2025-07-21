@@ -66,7 +66,7 @@ export function useMeetings() {
         .from('meetings')
         .select(`
           *,
-          agent:profiles(*),
+          agent:agents(*),
           client:clients(*),
           property:properties(*)
         `)
