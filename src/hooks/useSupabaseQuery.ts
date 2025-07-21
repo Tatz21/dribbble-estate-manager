@@ -235,6 +235,103 @@ export function useAgents() {
   });
 }
 
+export function useAgentPerformance(agentId?: string) {
+  return useQuery({
+    queryKey: ['agent-performance', agentId],
+    queryFn: async () => {
+      let query = supabase
+        .from('agent_performance')
+        .select(`
+          *,
+          agents (
+            full_name,
+            role,
+            specialization
+          )
+        `)
+        .order('month', { ascending: false });
+      
+      if (agentId) {
+        query = query.eq('agent_id', agentId);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!agentId || agentId === undefined,
+  });
+}
+
+export function useAgentWithPerformance() {
+  return useQuery({
+    queryKey: ['agents-with-performance'],
+    queryFn: async () => {
+      const { data: agents, error: agentsError } = await supabase
+        .from('agents')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (agentsError) throw agentsError;
+
+      // Get performance data for each agent
+      const agentsWithPerformance = await Promise.all(
+        agents.map(async (agent) => {
+          const { data: performance, error: perfError } = await supabase
+            .from('agent_performance')
+            .select('*')
+            .eq('agent_id', agent.id)
+            .order('month', { ascending: false })
+            .limit(6);
+
+          if (perfError) {
+            console.error('Error fetching performance:', perfError);
+            return { ...agent, performance: [] };
+          }
+
+          // Calculate aggregated metrics
+          const totalDeals = performance.reduce((sum, p) => sum + (p.deals_completed || 0), 0);
+          const totalRevenue = performance.reduce((sum, p) => sum + (p.total_revenue || 0), 0);
+          const totalTarget = performance.reduce((sum, p) => sum + (p.target_revenue || 0), 0);
+          const avgSatisfaction = performance.length > 0 
+            ? performance.reduce((sum, p) => sum + (p.client_satisfaction || 0), 0) / performance.length
+            : 0;
+          const avgResponseTime = performance.length > 0
+            ? performance.reduce((sum, p) => sum + (p.response_time_hours || 0), 0) / performance.length
+            : 0;
+          const avgConversion = performance.length > 0
+            ? performance.reduce((sum, p) => sum + (p.conversion_rate || 0), 0) / performance.length
+            : 0;
+
+          return {
+            ...agent,
+            performance,
+            metrics: {
+              dealsCompleted: totalDeals,
+              totalRevenue: totalRevenue,
+              targetAchievement: totalTarget > 0 ? Math.round((totalRevenue / totalTarget) * 100) : 0,
+              avgDealValue: totalDeals > 0 ? Math.round(totalRevenue / totalDeals) : 0,
+              clientSatisfaction: Math.round(avgSatisfaction * 10) / 10,
+              responseTime: `${Math.round(avgResponseTime * 10) / 10} hrs`,
+              conversionRate: Math.round(avgConversion)
+            },
+            monthlyPerformance: performance.map(p => ({
+              month: new Date(p.month).toLocaleDateString('en-US', { month: 'short' }),
+              deals: p.deals_completed || 0,
+              revenue: p.total_revenue || 0
+            })),
+            status: totalTarget > 0 && totalRevenue > totalTarget * 0.9 ? 'Above Target' :
+                   totalTarget > 0 && totalRevenue > totalTarget * 0.7 ? 'On Target' : 'Below Target'
+          };
+        })
+      );
+
+      return agentsWithPerformance;
+    },
+  });
+}
+
 export function useCreateAgent() {
   const queryClient = useQueryClient();
   

@@ -5,38 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Search, Trophy, TrendingUp, Target, DollarSign, Calendar, Star, User } from 'lucide-react';
+import { ArrowLeft, Search, Trophy, TrendingUp, Target, DollarSign, Calendar, Star, User, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAgents } from '@/hooks/useSupabaseQuery';
+import { useAgentWithPerformance } from '@/hooks/useSupabaseQuery';
+import { PerformanceMetricsForm } from '@/components/agents/PerformanceMetricsForm';
 
 export default function AgentPerformance() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: agents = [], isLoading } = useAgents();
-  
-  // Mock performance metrics for demonstration
-  const getAgentPerformanceData = (agent: any) => ({
-    ...agent,
-    metrics: {
-      dealsCompleted: Math.floor(Math.random() * 30) + 5,
-      totalRevenue: Math.floor(Math.random() * 10000000) + 2000000,
-      targetAchievement: Math.floor(Math.random() * 40) + 60,
-      avgDealValue: Math.floor(Math.random() * 500000) + 300000,
-      clientSatisfaction: (Math.random() * 1.5 + 3.5).toFixed(1),
-      responseTime: `${(Math.random() * 3 + 1).toFixed(1)} hrs`,
-      conversionRate: Math.floor(Math.random() * 20) + 20
-    },
-    monthlyPerformance: [
-      { month: "Jan", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
-      { month: "Feb", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
-      { month: "Mar", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
-      { month: "Apr", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
-      { month: "May", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
-      { month: "Jun", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 }
-    ],
-    status: Math.random() > 0.6 ? 'Above Target' : Math.random() > 0.3 ? 'On Target' : 'Below Target'
-  });
-
-  const performanceAgents = agents.map(getAgentPerformanceData);
+  const { data: performanceAgents = [], isLoading, refetch } = useAgentWithPerformance();
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
 
   const filteredAgents = performanceAgents.filter(agent =>
@@ -64,7 +40,7 @@ export default function AgentPerformance() {
     );
   }
 
-  if (agents.length === 0) {
+  if (performanceAgents.length === 0) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
@@ -127,6 +103,14 @@ export default function AgentPerformance() {
               </p>
             </div>
           </div>
+          
+          {selectedAgent && (
+            <PerformanceMetricsForm
+              agentId={selectedAgent.id}
+              agentName={selectedAgent.full_name || 'Unnamed Agent'}
+              onSuccess={() => refetch()}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -314,18 +298,26 @@ export default function AgentPerformance() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                  {selectedAgent.monthlyPerformance.map((month) => (
-                    <div key={month.month} className="text-center">
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <div className="text-sm text-muted-foreground mb-2">{month.month}</div>
-                        <div className="text-lg font-bold text-foreground">{month.deals}</div>
-                        <div className="text-xs text-muted-foreground">deals</div>
-                        <div className="text-sm font-semibold text-primary mt-2">{formatCurrency(month.revenue)}</div>
+                {selectedAgent.monthlyPerformance && selectedAgent.monthlyPerformance.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                    {selectedAgent.monthlyPerformance.map((month, index) => (
+                      <div key={`${month.month}-${index}`} className="text-center">
+                        <div className="bg-muted/50 rounded-lg p-4">
+                          <div className="text-sm text-muted-foreground mb-2">{month.month}</div>
+                          <div className="text-lg font-bold text-foreground">{month.deals}</div>
+                          <div className="text-xs text-muted-foreground">deals</div>
+                          <div className="text-sm font-semibold text-primary mt-2">{formatCurrency(month.revenue)}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-4">No performance data available</p>
+                    <p className="text-sm text-muted-foreground">Add monthly metrics to track performance trends</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

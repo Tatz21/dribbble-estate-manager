@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_performance: {
+        Row: {
+          agent_id: string
+          client_satisfaction: number | null
+          conversion_rate: number | null
+          created_at: string
+          deals_completed: number | null
+          id: string
+          month: string
+          response_time_hours: number | null
+          target_revenue: number | null
+          total_revenue: number | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          client_satisfaction?: number | null
+          conversion_rate?: number | null
+          created_at?: string
+          deals_completed?: number | null
+          id?: string
+          month: string
+          response_time_hours?: number | null
+          target_revenue?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          client_satisfaction?: number | null
+          conversion_rate?: number | null
+          created_at?: string
+          deals_completed?: number | null
+          id?: string
+          month?: string
+          response_time_hours?: number | null
+          target_revenue?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_performance_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           address: string | null
@@ -467,7 +517,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_target_achievement: {
+        Args: { agent_uuid: string; target_month: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
