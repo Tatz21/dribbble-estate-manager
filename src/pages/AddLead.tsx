@@ -160,11 +160,11 @@ export default function AddLead() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="website">Website</SelectItem>
-                          <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                          <SelectItem value="social_media">Social Media</SelectItem>
                           <SelectItem value="referral">Referral</SelectItem>
+                          <SelectItem value="social_media">Social Media</SelectItem>
+                          <SelectItem value="advertisement">Advertisement</SelectItem>
                           <SelectItem value="cold_call">Cold Call</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -182,19 +182,24 @@ export default function AddLead() {
                           <SelectItem value="new">New</SelectItem>
                           <SelectItem value="contacted">Contacted</SelectItem>
                           <SelectItem value="qualified">Qualified</SelectItem>
-                          <SelectItem value="negotiation">Negotiation</SelectItem>
-                          <SelectItem value="closed">Closed</SelectItem>
+                          <SelectItem value="converted">Converted</SelectItem>
+                          <SelectItem value="lost">Lost</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="interest_type">Interest Type</Label>
-                      <Input
-                        id="interest_type"
-                        placeholder="e.g., 3BHK Apartment, Villa, Commercial"
-                        {...form.register('interest_type')}
-                      />
+                      <Select onValueChange={(value) => form.setValue('interest_type', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select interest type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="buying">Buying</SelectItem>
+                          <SelectItem value="selling">Selling</SelectItem>
+                          <SelectItem value="renting">Renting</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">
