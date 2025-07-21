@@ -272,14 +272,12 @@ export default function Documents() {
                     required
                   >
                     <option value="">Select Type</option>
-                    <option value="Sale Agreement">Sale Agreement</option>
-                    <option value="Lease Agreement">Lease Agreement</option>
-                    <option value="Property Registration">Property Registration</option>
-                    <option value="RERA Certificate">RERA Certificate</option>
-                    <option value="NOC">NOC</option>
-                    <option value="Legal Document">Legal Document</option>
-                    <option value="Invoice">Invoice</option>
-                    <option value="Other">Other</option>
+                    <option value="contract">Contract</option>
+                    <option value="listing_agreement">Listing Agreement</option>
+                    <option value="disclosure">Disclosure</option>
+                    <option value="inspection_report">Inspection Report</option>
+                    <option value="appraisal">Appraisal</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
 
