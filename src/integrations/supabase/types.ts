@@ -229,6 +229,82 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          agent_id: string | null
+          amount: number
+          client_id: string | null
+          commission_amount: number | null
+          commission_rate: number | null
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          invoice_number: string
+          notes: string | null
+          paid_date: string | null
+          property_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          amount: number
+          client_id?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          invoice_number: string
+          notes?: string | null
+          paid_date?: string | null
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          amount?: number
+          client_id?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          notes?: string | null
+          paid_date?: string | null
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           assigned_agent_id: string | null
@@ -520,6 +596,10 @@ export type Database = {
       calculate_target_achievement: {
         Args: { agent_uuid: string; target_month: string }
         Returns: number
+      }
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
     }
     Enums: {
