@@ -4,74 +4,113 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Filter, Package, TrendingUp, TrendingDown, Eye, Edit, Building, MapPin } from 'lucide-react';
-
-// Mock data
-const inventoryData = [
-  {
-    id: 1,
-    project: "Skyline Residences",
-    developer: "ABC Developers",
-    location: "Bandra West, Mumbai",
-    totalUnits: 120,
-    availableUnits: 45,
-    soldUnits: 65,
-    rentedUnits: 10,
-    priceRange: "₹2.5 - 4.2 Cr",
-    type: "Residential",
-    status: "Active",
-    completionDate: "2024-12-31"
-  },
-  {
-    id: 2,
-    project: "Corporate Plaza",
-    developer: "XYZ Infrastructure",
-    location: "BKC, Mumbai",
-    totalUnits: 80,
-    availableUnits: 20,
-    soldUnits: 50,
-    rentedUnits: 10,
-    priceRange: "₹3.0 - 8.5 Cr",
-    type: "Commercial",
-    status: "Active",
-    completionDate: "2024-06-30"
-  },
-  {
-    id: 3,
-    project: "Green Valley Villas",
-    developer: "Green Homes",
-    location: "Lonavala, Maharashtra",
-    totalUnits: 60,
-    availableUnits: 35,
-    soldUnits: 20,
-    rentedUnits: 5,
-    priceRange: "₹1.2 - 2.8 Cr",
-    type: "Villa",
-    status: "Under Construction",
-    completionDate: "2025-03-31"
-  }
-];
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Filter, Package, TrendingUp, TrendingDown, Eye, Edit, Building, MapPin, Plus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const filteredInventory = inventoryData.filter(item => {
-    const matchesSearch = item.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.developer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = !selectedType || item.type === selectedType;
-    const matchesStatus = !selectedStatus || item.status === selectedStatus;
+  // Fetch properties data
+  const { data: properties = [], isLoading, error } = useQuery({
+    queryKey: ['properties'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select(`
+          *,
+          property_types(name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch property types for filter
+  const { data: propertyTypes = [] } = useQuery({
+    queryKey: ['property-types'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('property_types')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading inventory...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-destructive">Error loading inventory</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const filteredInventory = properties.filter(property => {
+    const matchesSearch = property.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         property.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         property.city?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = selectedType === 'all' || property.property_types?.name === selectedType;
+    const matchesStatus = selectedStatus === 'all' || property.status === selectedStatus;
     return matchesSearch && matchesType && matchesStatus;
   });
 
+  // Calculate stats
+  const totalProperties = properties.length;
+  const availableProperties = properties.filter(p => p.status === 'available').length;
+  const soldProperties = properties.filter(p => p.status === 'sold').length;
+  const rentedProperties = properties.filter(p => p.status === 'rented').length;
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-success';
-      case 'Under Construction': return 'bg-warning';
-      case 'Completed': return 'bg-primary';
-      default: return 'bg-muted';
+      case 'available': return 'bg-success text-success-foreground';
+      case 'sold': return 'bg-warning text-warning-foreground';
+      case 'rented': return 'bg-destructive text-destructive-foreground';
+      case 'under_construction': return 'bg-secondary text-secondary-foreground';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    if (amount >= 10000000) {
+      return `₹${(amount / 10000000).toFixed(1)} Cr`;
+    } else if (amount >= 100000) {
+      return `₹${(amount / 100000).toFixed(1)} L`;
+    } else {
+      return `₹${amount.toLocaleString()}`;
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    switch (status) {
+      case 'available': return 'Available';
+      case 'sold': return 'Sold';
+      case 'rented': return 'Rented';
+      case 'under_construction': return 'Under Construction';
+      default: return status;
     }
   };
 
@@ -81,11 +120,17 @@ export default function Inventory() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
+            <h1 className="text-3xl font-bold text-foreground">Property Inventory</h1>
             <p className="text-muted-foreground mt-1">
-              Track property inventory across all projects
+              Manage and track all your properties
             </p>
           </div>
+          <Link to="/properties/add">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Property
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Overview */}
@@ -94,8 +139,8 @@ export default function Inventory() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Units</p>
-                  <p className="text-2xl font-bold text-foreground">260</p>
+                  <p className="text-sm text-muted-foreground">Total Properties</p>
+                  <p className="text-2xl font-bold text-foreground">{totalProperties}</p>
                 </div>
                 <Package className="h-8 w-8 text-primary" />
               </div>
@@ -107,7 +152,7 @@ export default function Inventory() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Available</p>
-                  <p className="text-2xl font-bold text-success">100</p>
+                  <p className="text-2xl font-bold text-success">{availableProperties}</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-success" />
               </div>
@@ -119,7 +164,7 @@ export default function Inventory() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Sold</p>
-                  <p className="text-2xl font-bold text-warning">135</p>
+                  <p className="text-2xl font-bold text-warning">{soldProperties}</p>
                 </div>
                 <TrendingDown className="h-8 w-8 text-warning" />
               </div>
@@ -131,7 +176,7 @@ export default function Inventory() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Rented</p>
-                  <p className="text-2xl font-bold text-destructive">25</p>
+                  <p className="text-2xl font-bold text-destructive">{rentedProperties}</p>
                 </div>
                 <Building className="h-8 w-8 text-destructive" />
               </div>
@@ -153,28 +198,32 @@ export default function Inventory() {
                 />
               </div>
               
-              <select 
-                className="px-3 py-2 border border-border rounded-md bg-background"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-              >
-                <option value="">All Types</option>
-                <option value="Residential">Residential</option>
-                <option value="Commercial">Commercial</option>
-                <option value="Villa">Villa</option>
-                <option value="Plot">Plot</option>
-              </select>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {propertyTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.name}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
-              <select 
-                className="px-3 py-2 border border-border rounded-md bg-background"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Under Construction">Under Construction</option>
-                <option value="Completed">Completed</option>
-              </select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="sold">Sold</SelectItem>
+                  <SelectItem value="rented">Rented</SelectItem>
+                  <SelectItem value="under_construction">Under Construction</SelectItem>
+                </SelectContent>
+              </Select>
               
               <Button variant="outline">
                 <Filter className="h-4 w-4 mr-2" />
@@ -187,70 +236,94 @@ export default function Inventory() {
         {/* Inventory Table */}
         <Card className="card-modern">
           <CardHeader>
-            <CardTitle>Project Inventory</CardTitle>
+            <CardTitle>Property Inventory ({filteredInventory.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {filteredInventory.map((item) => (
-                <div key={item.id} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">{item.project}</h3>
-                        <Badge className={getStatusColor(item.status)}>
-                          {item.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        <Building className="h-4 w-4" />
-                        <span>{item.developer}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        <span>{item.location}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total</p>
-                        <p className="font-semibold">{item.totalUnits}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Available</p>
-                        <p className="font-semibold text-success">{item.availableUnits}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Sold</p>
-                        <p className="font-semibold text-warning">{item.soldUnits}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Rented</p>
-                        <p className="font-semibold text-destructive">{item.rentedUnits}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{item.type}</Badge>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 pt-3 border-t border-border/50">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Price Range: <span className="font-semibold text-foreground">{item.priceRange}</span></span>
-                      <span className="text-muted-foreground">Completion: <span className="font-semibold text-foreground">{item.completionDate}</span></span>
-                    </div>
-                  </div>
+              {filteredInventory.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No properties found matching your criteria.</p>
+                  <Link to="/properties/add">
+                    <Button className="mt-4">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Property
+                    </Button>
+                  </Link>
                 </div>
-              ))}
+              ) : (
+                filteredInventory.map((property) => (
+                  <div key={property.id} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-lg">{property.title}</h3>
+                          <Badge className={getStatusColor(property.status)}>
+                            {formatStatus(property.status)}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                          <Building className="h-4 w-4" />
+                          <span>Property Agent</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span>{property.address}, {property.city}, {property.state}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Price</p>
+                          <p className="font-semibold text-success">{formatCurrency(property.price)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Type</p>
+                          <p className="font-semibold">{property.property_types?.name || 'Unknown'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Size</p>
+                          <p className="font-semibold">{property.square_feet ? `${property.square_feet} sq ft` : 'N/A'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => navigate(`/properties/${property.id}`)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => navigate(`/properties/edit/${property.id}`)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 pt-3 border-t border-border/50">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">
+                          Bedrooms: <span className="font-semibold text-foreground">{property.bedrooms || 'N/A'}</span>
+                          {property.bathrooms && (
+                            <> | Bathrooms: <span className="font-semibold text-foreground">{property.bathrooms}</span></>
+                          )}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Listed: <span className="font-semibold text-foreground">
+                            {new Date(property.listing_date).toLocaleDateString()}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
