@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save, Plus, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useCreateClient, useProfile } from '@/hooks/useSupabaseQuery';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-const AddClient = () => {
+const EditClient = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { data: profile } = useProfile();
-  const createClient = useCreateClient();
+  const { id } = useParams();
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -33,19 +30,51 @@ const AddClient = () => {
 
   const [locationInput, setLocationInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchClient = async () => {
+      if (!id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+
+        setFormData({
+          full_name: data.full_name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          client_type: data.client_type || '',
+          budget_min: data.budget_min?.toString() || '',
+          budget_max: data.budget_max?.toString() || '',
+          address: data.address || '',
+          notes: data.notes || '',
+          preferred_locations: data.preferred_locations || []
+        });
+      } catch (error) {
+        console.error('Error fetching client:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load client data.",
+          variant: "destructive",
+        });
+        navigate('/clients');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchClient();
+  }, [id, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    if (!profile) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to add a client.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     try {
       const clientData = {
@@ -57,23 +86,27 @@ const AddClient = () => {
         budget_max: formData.budget_max ? parseFloat(formData.budget_max) : null,
         address: formData.address || null,
         notes: formData.notes || null,
-        preferred_locations: formData.preferred_locations,
-        agent_id: profile.id
+        preferred_locations: formData.preferred_locations
       };
 
-      await createClient.mutateAsync(clientData);
+      const { error } = await supabase
+        .from('clients')
+        .update(clientData)
+        .eq('id', id);
+
+      if (error) throw error;
       
       toast({
-        title: "Client added successfully",
-        description: "The client has been added to your database.",
+        title: "Client updated successfully",
+        description: "The client information has been updated.",
       });
       
       navigate('/clients');
     } catch (error) {
-      console.error('Error adding client:', error);
+      console.error('Error updating client:', error);
       toast({
         title: "Error",
-        description: "Failed to add client. Please try again.",
+        description: "Failed to update client. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -98,9 +131,18 @@ const AddClient = () => {
     }));
   };
 
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Edit Client</h1>
+            <p className="text-muted-foreground">Loading client information...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -113,15 +155,15 @@ const AddClient = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Add New Client</h1>
-            <p className="text-muted-foreground">Create a new client profile</p>
+            <h1 className="text-3xl font-bold">Edit Client</h1>
+            <p className="text-muted-foreground">Update client information</p>
           </div>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Client Information</CardTitle>
-            <CardDescription>Enter the client's details below</CardDescription>
+            <CardDescription>Update the client's details below</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -249,7 +291,7 @@ const AddClient = () => {
                 </Link>
                 <Button type="submit" disabled={isSubmitting || !formData.full_name || !formData.client_type}>
                   <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? 'Adding Client...' : 'Add Client'}
+                  {isSubmitting ? 'Updating Client...' : 'Update Client'}
                 </Button>
               </div>
             </form>
@@ -260,4 +302,4 @@ const AddClient = () => {
   );
 };
 
-export default AddClient;
+export default EditClient;
