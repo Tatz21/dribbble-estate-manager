@@ -316,9 +316,19 @@ export default function AgentPerformance() {
 
             {/* Additional Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="card-modern">
+              <Card className="card-modern group relative">
                 <CardHeader>
-                  <CardTitle className="text-sm">Client Satisfaction</CardTitle>
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    Client Satisfaction
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <PerformanceMetricsForm
+                        agentId={selectedAgent.id}
+                        agentName={selectedAgent.full_name || 'Unnamed Agent'}
+                        existingMetrics={selectedAgent.performance?.[0]}
+                        onSuccess={quickRefetch}
+                      />
+                    </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
@@ -329,9 +339,19 @@ export default function AgentPerformance() {
                 </CardContent>
               </Card>
               
-              <Card className="card-modern">
+              <Card className="card-modern group relative">
                 <CardHeader>
-                  <CardTitle className="text-sm">Response Time</CardTitle>
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    Response Time
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <PerformanceMetricsForm
+                        agentId={selectedAgent.id}
+                        agentName={selectedAgent.full_name || 'Unnamed Agent'}
+                        existingMetrics={selectedAgent.performance?.[0]}
+                        onSuccess={quickRefetch}
+                      />
+                    </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
@@ -341,9 +361,19 @@ export default function AgentPerformance() {
                 </CardContent>
               </Card>
               
-              <Card className="card-modern">
+              <Card className="card-modern group relative">
                 <CardHeader>
-                  <CardTitle className="text-sm">Conversion Rate</CardTitle>
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    Conversion Rate
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <PerformanceMetricsForm
+                        agentId={selectedAgent.id}
+                        agentName={selectedAgent.full_name || 'Unnamed Agent'}
+                        existingMetrics={selectedAgent.performance?.[0]}
+                        onSuccess={quickRefetch}
+                      />
+                    </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
@@ -365,16 +395,32 @@ export default function AgentPerformance() {
               <CardContent>
                 {selectedAgent.monthlyPerformance && selectedAgent.monthlyPerformance.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                    {selectedAgent.monthlyPerformance.map((month, index) => (
-                      <div key={`${month.month}-${index}`} className="text-center">
-                        <div className="bg-muted/50 rounded-lg p-4">
-                          <div className="text-sm text-muted-foreground mb-2">{month.month}</div>
-                          <div className="text-lg font-bold text-foreground">{month.deals}</div>
-                          <div className="text-xs text-muted-foreground">deals</div>
-                          <div className="text-sm font-semibold text-primary mt-2">{formatCurrency(month.revenue)}</div>
+                    {selectedAgent.monthlyPerformance.map((month, index) => {
+                      const performanceRecord = selectedAgent.performance?.find((p: any) => 
+                        new Date(p.month).toLocaleDateString('en-US', { month: 'short' }) === month.month
+                      );
+                      
+                      return (
+                        <div key={`${month.month}-${index}`} className="relative group">
+                          <div className="bg-muted/50 rounded-lg p-4 hover:bg-muted/70 transition-colors">
+                            <div className="text-sm text-muted-foreground mb-2">{month.month}</div>
+                            <div className="text-lg font-bold text-foreground">{month.deals}</div>
+                            <div className="text-xs text-muted-foreground">deals</div>
+                            <div className="text-sm font-semibold text-primary mt-2">{formatCurrency(month.revenue)}</div>
+                          </div>
+                          {performanceRecord && (
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <PerformanceMetricsForm
+                                agentId={selectedAgent.id}
+                                agentName={selectedAgent.full_name || 'Unnamed Agent'}
+                                existingMetrics={performanceRecord}
+                                onSuccess={quickRefetch}
+                              />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8">

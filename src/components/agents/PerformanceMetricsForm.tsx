@@ -11,21 +11,23 @@ import { useCreateOrUpdatePerformance } from '@/hooks/useSupabaseQuery';
 interface PerformanceMetricsFormProps {
   agentId: string;
   agentName: string;
+  existingMetrics?: any;
   onSuccess?: () => void;
 }
 
-export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: PerformanceMetricsFormProps) {
+export function PerformanceMetricsForm({ agentId, agentName, existingMetrics, onSuccess }: PerformanceMetricsFormProps) {
   const { toast } = useToast();
   const createOrUpdatePerformance = useCreateOrUpdatePerformance();
   const [open, setOpen] = useState(false);
+  const isEditing = !!existingMetrics;
   const [formData, setFormData] = useState({
-    month: new Date().toISOString().slice(0, 7), // YYYY-MM format
-    deals_completed: '',
-    total_revenue: '',
-    target_revenue: '',
-    client_satisfaction: '',
-    response_time_hours: '',
-    conversion_rate: ''
+    month: existingMetrics ? new Date(existingMetrics.month).toISOString().slice(0, 7) : new Date().toISOString().slice(0, 7),
+    deals_completed: existingMetrics?.deals_completed?.toString() || '',
+    total_revenue: existingMetrics?.total_revenue?.toString() || '',
+    target_revenue: existingMetrics?.target_revenue?.toString() || '',
+    client_satisfaction: existingMetrics?.client_satisfaction?.toString() || '',
+    response_time_hours: existingMetrics?.response_time_hours?.toString() || '',
+    conversion_rate: existingMetrics?.conversion_rate?.toString() || ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +52,7 @@ export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: Perfor
 
       toast({
         title: "⚡ Metrics updated instantly!",
-        description: `Performance data for ${agentName} has been saved.`,
+        description: `${isEditing ? 'Updated' : 'Added'} performance data for ${agentName}.`,
       });
 
       setOpen(false);
@@ -78,19 +80,29 @@ export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: Perfor
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="bg-primary/10 hover:bg-primary/20 border-primary/20">
-          <Zap className="h-4 w-4 mr-2" />
-          Quick Add
+        <Button 
+          variant={isEditing ? "ghost" : "outline"} 
+          size="sm" 
+          className={isEditing ? "h-6 w-6 p-0 hover:bg-primary/10" : "bg-primary/10 hover:bg-primary/20 border-primary/20"}
+        >
+          {isEditing ? (
+            <Zap className="h-3 w-3" />
+          ) : (
+            <>
+              <Zap className="h-4 w-4 mr-2" />
+              Quick Add
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            Quick Metrics Update
+            {isEditing ? 'Edit Performance Metrics' : 'Quick Metrics Update'}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Instantly update performance data for {agentName}
+            {isEditing ? 'Modify existing' : 'Add new'} performance data for {agentName}
           </p>
         </DialogHeader>
         
@@ -102,8 +114,13 @@ export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: Perfor
               type="month"
               value={formData.month}
               onChange={(e) => setFormData(prev => ({...prev, month: e.target.value}))}
+              disabled={isEditing} // Can't change month when editing
+              className={isEditing ? "opacity-60" : ""}
               required
             />
+            {isEditing && (
+              <p className="text-xs text-muted-foreground">Month cannot be changed when editing</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -200,7 +217,7 @@ export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: Perfor
               ) : (
                 <Zap className="h-4 w-4 mr-2" />
               )}
-              {createOrUpdatePerformance.isPending ? 'Saving...' : 'Save Instantly'}
+              {createOrUpdatePerformance.isPending ? 'Saving...' : (isEditing ? 'Update Metrics' : 'Save Instantly')}
             </Button>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
