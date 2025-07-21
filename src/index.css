@@ -50,13 +50,13 @@ All colors MUST be HSL.
     --radius: 0.75rem;
 
     /* Sidebar styling */
-    --sidebar-background: 0 0% 100%;
+    --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 10% 15%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 42 52% 94%;
+    --sidebar-accent: 42 52% 92%;
     --sidebar-accent-foreground: 240 10% 15%;
-    --sidebar-border: 42 20% 85%;
+    --sidebar-border: 42 20% 82%;
     --sidebar-ring: 217 91% 60%;
 
     /* Gradients */

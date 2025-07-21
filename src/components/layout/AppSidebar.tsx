@@ -131,8 +131,8 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-      : "hover:bg-sidebar-accent/50 text-sidebar-foreground";
+      ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium" 
+      : "hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground";
 
   return (
     <Sidebar className="border-sidebar-border/50">
@@ -165,7 +165,7 @@ export function AppSidebar() {
                     {item.items ? (
                       <>
                         <CollapsibleTrigger asChild>
-                          <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent/50">
+                          <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground">
                             <div className="flex items-center gap-3">
                               <item.icon className="h-4 w-4" />
                               {state === "expanded" && <span>{item.title}</span>}
