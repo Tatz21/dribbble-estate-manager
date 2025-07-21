@@ -51,7 +51,7 @@ export function RecentProperties() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-lg">${property.price?.toLocaleString()}</p>
+                  <p className="font-semibold text-lg">₹{property.price?.toLocaleString()}</p>
                   <Badge variant={property.status === "available" ? "default" : "secondary"}>
                     {property.status}
                   </Badge>

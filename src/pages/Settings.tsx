@@ -363,7 +363,7 @@ export default function Settings() {
                 
                 <div>
                   <Label>Currency</Label>
-                  <select className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2">
+                  <select className="w-full px-3 py-2 border border-border rounded-md bg-background mt-2" defaultValue="inr">
                     <option value="inr">INR (₹)</option>
                     <option value="usd">USD ($)</option>
                     <option value="eur">EUR (€)</option>
