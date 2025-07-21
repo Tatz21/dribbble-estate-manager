@@ -70,10 +70,7 @@ const App = () => (
             <Route path="/agents/performance" element={<ProtectedRoute><AgentPerformance /></ProtectedRoute>} />
             
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-            <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-            <Route path="/billing/invoices" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-            <Route path="/billing/commission" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-            <Route path="/billing/payments" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+            <Route path="/invoices" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
