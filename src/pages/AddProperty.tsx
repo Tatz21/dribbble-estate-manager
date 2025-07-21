@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { usePropertyTypes, useCreateProperty, useProfile } from '@/hooks/useSupabaseQuery';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AddProperty() {
   const navigate = useNavigate();
@@ -37,9 +38,35 @@ export default function AddProperty() {
 
   const [featureInput, setFeatureInput] = useState('');
   const [imageFiles, setImageFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadImages = async (files) => {
+    if (!files.length) return [];
+    
+    const uploadPromises = files.map(async (file, index) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${index}.${fileExt}`;
+      const filePath = `properties/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('property-images')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data } = supabase.storage
+        .from('property-images')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    });
+
+    return Promise.all(uploadPromises);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
     
     if (!profile) {
       toast({
@@ -51,6 +78,8 @@ export default function AddProperty() {
     }
     
     try {
+      // Upload images first
+      const uploadedImageUrls = await uploadImages(imageFiles);
       const propertyData = {
         title: formData.title,
         property_type_id: formData.property_type_id,
@@ -64,7 +93,7 @@ export default function AddProperty() {
         square_feet: formData.square_feet ? parseFloat(formData.square_feet) : null,
         description: formData.description,
         features: formData.features,
-        images: formData.images,
+        images: uploadedImageUrls,
         agent_id: profile.id,
         status: 'available'
       };
@@ -78,11 +107,14 @@ export default function AddProperty() {
       
       navigate('/properties');
     } catch (error) {
+      console.error('Error adding property:', error);
       toast({
         title: "Error",
         description: "Failed to add property. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -105,14 +137,31 @@ export default function AddProperty() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setImageFiles(prev => [...prev, ...files]);
+    if (files.length === 0) return;
     
-    // For now, just store file names. In a real app, you'd upload to storage
-    const fileNames = files.map(file => file.name);
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...fileNames]
-    }));
+    // Validate file types
+    const validFiles = files.filter(file => file.type.startsWith('image/'));
+    if (validFiles.length !== files.length) {
+      toast({
+        title: "Invalid files",
+        description: "Please select only image files.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check file sizes (max 5MB each)
+    const oversizedFiles = validFiles.filter(file => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      toast({
+        title: "Files too large",
+        description: "Please select images smaller than 5MB each.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setImageFiles(prev => [...prev, ...validFiles]);
   };
 
   return (
@@ -349,11 +398,7 @@ export default function AddProperty() {
                       <button
                         type="button"
                         onClick={() => {
-                          setImageFiles(prev => prev.filter((_, i) => i !== index));
-                          setFormData(prev => ({
-                            ...prev,
-                            images: prev.images.filter((_, i) => i !== index)
-                          }));
+                        setImageFiles(prev => prev.filter((_, i) => i !== index));
                         }}
                         className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
@@ -373,8 +418,8 @@ export default function AddProperty() {
                 Cancel
               </Button>
             </Link>
-            <Button type="submit" className="btn-gradient">
-              Add Property
+            <Button type="submit" className="btn-gradient" disabled={uploading}>
+              {uploading ? 'Adding Property...' : 'Add Property'}
             </Button>
           </div>
         </form>
