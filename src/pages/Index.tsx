@@ -6,11 +6,16 @@ import { StatsCards } from '@/components/dashboard/StatsCards';
 import { RecentProperties } from '@/components/dashboard/RecentProperties';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, TrendingUp } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Bell } from 'lucide-react';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Initialize real-time notifications
+  useRealtimeNotifications();
+  
   
   return (
     <DashboardLayout>
