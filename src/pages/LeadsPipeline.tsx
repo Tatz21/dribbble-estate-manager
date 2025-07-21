@@ -6,64 +6,47 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Phone, Mail, Calendar, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLeadsPipeline, useUpdateLeadStatus } from '@/hooks/useLeadsData';
 
 const LeadsPipeline = () => {
-  const pipelineStages = [
-    {
-      id: 1,
-      name: 'New Leads',
-      color: 'bg-blue-500',
-      leads: [
-        { id: 1, name: 'John Doe', email: 'john@example.com', phone: '(555) 123-4567', value: 500000, source: 'Website' },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '(555) 987-6543', value: 750000, source: 'Referral' },
-      ]
-    },
-    {
-      id: 2,
-      name: 'Qualified',
-      color: 'bg-yellow-500',
-      leads: [
-        { id: 3, name: 'Bob Johnson', email: 'bob@example.com', phone: '(555) 456-7890', value: 650000, source: 'Cold Call' },
-        { id: 4, name: 'Alice Brown', email: 'alice@example.com', phone: '(555) 321-0987', value: 900000, source: 'Social Media' },
-      ]
-    },
-    {
-      id: 3,
-      name: 'Viewing Scheduled',
-      color: 'bg-orange-500',
-      leads: [
-        { id: 5, name: 'Charlie Wilson', email: 'charlie@example.com', phone: '(555) 555-5555', value: 425000, source: 'Website' },
-      ]
-    },
-    {
-      id: 4,
-      name: 'Negotiation',
-      color: 'bg-purple-500',
-      leads: [
-        { id: 6, name: 'Diana Prince', email: 'diana@example.com', phone: '(555) 777-8888', value: 1200000, source: 'Referral' },
-      ]
-    },
-    {
-      id: 5,
-      name: 'Closed Won',
-      color: 'bg-green-500',
-      leads: [
-        { id: 7, name: 'Clark Kent', email: 'clark@example.com', phone: '(555) 999-0000', value: 800000, source: 'Website' },
-      ]
-    }
-  ];
+  const { data: pipelineStages = [], isLoading, error } = useLeadsPipeline();
+  const updateLeadStatus = useUpdateLeadStatus();
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading pipeline...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-destructive">Error loading pipeline</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    if (!amount) return '₹0';
+    return `₹${(amount / 10000000).toFixed(1)} Cr`;
+  };
+
+  const handleMoveStage = async (leadId: string, currentStatus: string, targetStatus: string) => {
+    try {
+      await updateLeadStatus.mutateAsync({ leadId, status: targetStatus });
+    } catch (error) {
+      console.error('Failed to update lead status:', error);
+    }
   };
 
   return (
@@ -100,29 +83,29 @@ const LeadsPipeline = () => {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={`/placeholder.svg?height=40&width=40`} />
-                          <AvatarFallback>{getInitials(lead.name)}</AvatarFallback>
+                          <AvatarFallback>{getInitials(lead.full_name || 'Unknown')}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <CardTitle className="text-sm">{lead.name}</CardTitle>
-                          <p className="text-xs text-muted-foreground">{lead.source}</p>
+                          <CardTitle className="text-sm">{lead.full_name || 'Unknown Lead'}</CardTitle>
+                          <p className="text-xs text-muted-foreground">{lead.source || 'Unknown'}</p>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
-                          <DollarSign className="h-3 w-3 text-green-500" />
-                          <span className="font-semibold text-green-600">
-                            {formatCurrency(lead.value)}
+                          <DollarSign className="h-3 w-3 text-success" />
+                          <span className="font-semibold text-success">
+                            {formatCurrency(lead.budget || 0)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Mail className="h-3 w-3" />
-                          <span className="truncate">{lead.email}</span>
+                          <span className="truncate">{lead.email || 'No email'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Phone className="h-3 w-3" />
-                          <span>{lead.phone}</span>
+                          <span>{lead.phone || 'No phone'}</span>
                         </div>
                       </div>
                       <div className="flex gap-2 mt-3">

@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import AddProperty from "./pages/AddProperty";
 import PropertyTypes from "./pages/PropertyTypes";
+import LeadSources from "./pages/LeadSources";
 import Clients from "./pages/Clients";
 import AddClient from "./pages/AddClient";
 import EditClient from "./pages/EditClient";
@@ -55,7 +56,7 @@ const App = () => (
             <Route path="/meetings/edit/:id" element={<ProtectedRoute><EditMeeting /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/leads/pipeline" element={<ProtectedRoute><LeadsPipeline /></ProtectedRoute>} />
-            <Route path="/leads/sources" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
+            <Route path="/leads/sources" element={<ProtectedRoute><LeadSources /></ProtectedRoute>} />
             <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
             <Route path="/agents/add" element={<ProtectedRoute><AddAgent /></ProtectedRoute>} />
             <Route path="/agents/view/:id" element={<ProtectedRoute><ViewAgent /></ProtectedRoute>} />
