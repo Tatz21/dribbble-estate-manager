@@ -31,8 +31,6 @@ import Billing from "./pages/Billing";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Login from "./pages/auth/Login";
-import ViewProperty from "./pages/ViewProperty";
-import EditProperty from "./pages/EditProperty";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,8 +47,6 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
             <Route path="/properties/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
-            <Route path="/properties/:id" element={<ProtectedRoute><ViewProperty /></ProtectedRoute>} />
-            <Route path="/properties/edit/:id" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
             <Route path="/properties/types" element={<ProtectedRoute><PropertyTypes /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/add" element={<ProtectedRoute><AddClient /></ProtectedRoute>} />
