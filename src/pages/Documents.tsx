@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useSupabaseQuery';
 
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +21,7 @@ export default function Documents() {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { data: profile } = useProfile();
   const queryClient = useQueryClient();
 
   const [uploadForm, setUploadForm] = useState({
@@ -167,6 +169,16 @@ export default function Documents() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!profile) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to upload documents.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setUploading(true);
     
     try {
@@ -176,7 +188,7 @@ export default function Documents() {
         description: uploadForm.description,
         property_id: uploadForm.property_id || null,
         client_id: uploadForm.client_id || null,
-        agent_id: user?.id
+        agent_id: profile.id // Use profile ID instead of user ID
       });
     } finally {
       setUploading(false);
