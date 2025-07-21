@@ -19,6 +19,7 @@ import Leads from "./pages/Leads";
 import LeadsPipeline from "./pages/LeadsPipeline";
 import Agents from "./pages/Agents";
 import AddAgent from "./pages/AddAgent";
+import AgentPerformance from "./pages/AgentPerformance";
 import Inventory from "./pages/Inventory";
 import Documents from "./pages/Documents";
 import Billing from "./pages/Billing";
@@ -51,7 +52,7 @@ const App = () => (
             <Route path="/leads/sources" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
             <Route path="/agents/add" element={<ProtectedRoute><AddAgent /></ProtectedRoute>} />
-            <Route path="/agents/performance" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
+            <Route path="/agents/performance" element={<ProtectedRoute><AgentPerformance /></ProtectedRoute>} />
             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
