@@ -351,3 +351,55 @@ export function useCreateAgent() {
     }
   });
 }
+
+export function useCreateOrUpdatePerformance() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (performance: any) => {
+      const { data, error } = await supabase
+        .from('agent_performance')
+        .upsert(performance, { onConflict: 'agent_id,month' })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onMutate: async (newPerformance) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['agent-performance'] });
+      
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData(['agent-performance']);
+      
+      // Optimistically update cache
+      queryClient.setQueryData(['agent-performance'], (old: any) => {
+        if (!old) return [newPerformance];
+        
+        const existing = old.find((p: any) => 
+          p.agent_id === newPerformance.agent_id && 
+          p.month === newPerformance.month
+        );
+        
+        if (existing) {
+          return old.map((p: any) => 
+            p.agent_id === newPerformance.agent_id && p.month === newPerformance.month
+              ? { ...p, ...newPerformance }
+              : p
+          );
+        } else {
+          return [...old, newPerformance];
+        }
+      });
+      
+      return { previousData };
+    },
+    onError: (err, newPerformance, context) => {
+      queryClient.setQueryData(['agent-performance'], context?.previousData);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['agent-performance'] });
+    }
+  });
+}

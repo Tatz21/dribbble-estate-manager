@@ -4,9 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Save, Loader2 } from 'lucide-react';
+import { Plus, Save, Loader2, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useCreateOrUpdatePerformance } from '@/hooks/useSupabaseQuery';
 
 interface PerformanceMetricsFormProps {
   agentId: string;
@@ -16,7 +16,7 @@ interface PerformanceMetricsFormProps {
 
 export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: PerformanceMetricsFormProps) {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const createOrUpdatePerformance = useCreateOrUpdatePerformance();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     month: new Date().toISOString().slice(0, 7), // YYYY-MM format
@@ -30,30 +30,27 @@ export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: Perfor
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
       // Convert month to first day of the month
       const monthDate = new Date(formData.month + '-01');
       
-      const { error } = await supabase
-        .from('agent_performance')
-        .upsert({
-          agent_id: agentId,
-          month: monthDate.toISOString().split('T')[0],
-          deals_completed: parseInt(formData.deals_completed) || 0,
-          total_revenue: parseFloat(formData.total_revenue) || 0,
-          target_revenue: parseFloat(formData.target_revenue) || 0,
-          client_satisfaction: parseFloat(formData.client_satisfaction) || 0,
-          response_time_hours: parseFloat(formData.response_time_hours) || 0,
-          conversion_rate: parseFloat(formData.conversion_rate) || 0,
-        });
+      const performanceData = {
+        agent_id: agentId,
+        month: monthDate.toISOString().split('T')[0],
+        deals_completed: parseInt(formData.deals_completed) || 0,
+        total_revenue: parseFloat(formData.total_revenue) || 0,
+        target_revenue: parseFloat(formData.target_revenue) || 0,
+        client_satisfaction: parseFloat(formData.client_satisfaction) || 0,
+        response_time_hours: parseFloat(formData.response_time_hours) || 0,
+        conversion_rate: parseFloat(formData.conversion_rate) || 0,
+      };
 
-      if (error) throw error;
+      await createOrUpdatePerformance.mutateAsync(performanceData);
 
       toast({
-        title: "Performance metrics saved",
-        description: `Metrics for ${agentName} have been updated successfully.`,
+        title: "⚡ Metrics updated instantly!",
+        description: `Performance data for ${agentName} has been saved.`,
       });
 
       setOpen(false);
@@ -75,24 +72,25 @@ export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: Perfor
         description: "Failed to save performance metrics. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Metrics
+        <Button variant="outline" size="sm" className="bg-primary/10 hover:bg-primary/20 border-primary/20">
+          <Zap className="h-4 w-4 mr-2" />
+          Quick Add
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Performance Metrics</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            Quick Metrics Update
+          </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Add monthly performance data for {agentName}
+            Instantly update performance data for {agentName}
           </p>
         </DialogHeader>
         
@@ -192,9 +190,17 @@ export function PerformanceMetricsForm({ agentId, agentName, onSuccess }: Perfor
           </div>
 
           <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Metrics
+            <Button 
+              type="submit" 
+              disabled={createOrUpdatePerformance.isPending} 
+              className="flex-1 btn-gradient"
+            >
+              {createOrUpdatePerformance.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="h-4 w-4 mr-2" />
+              )}
+              {createOrUpdatePerformance.isPending ? 'Saving...' : 'Save Instantly'}
             </Button>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel

@@ -58,8 +58,21 @@ export default function AgentPerformance() {
     });
   }, [agents, allPerformance]);
 
-  const refetch = () => {
-    // This will be handled by react-query automatically
+  // Set first agent as selected when data loads
+  React.useEffect(() => {
+    if (performanceAgents.length > 0 && !selectedAgent) {
+      setSelectedAgent(performanceAgents[0]);
+    }
+  }, [performanceAgents.length, selectedAgent]);
+
+  const quickRefetch = () => {
+    // Force a fast re-computation of the memoized data
+    setSelectedAgent(null);
+    setTimeout(() => {
+      if (performanceAgents.length > 0) {
+        setSelectedAgent(performanceAgents[0]);
+      }
+    }, 100);
   };
 
   const filteredAgents = performanceAgents.filter(agent =>
@@ -152,11 +165,16 @@ export default function AgentPerformance() {
           </div>
           
           {selectedAgent && (
-            <PerformanceMetricsForm
-              agentId={selectedAgent.id}
-              agentName={selectedAgent.full_name || 'Unnamed Agent'}
-              onSuccess={() => refetch()}
-            />
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-muted-foreground px-2 py-1 bg-primary/5 rounded">
+                ⚡ Live Updates
+              </div>
+              <PerformanceMetricsForm
+                agentId={selectedAgent.id}
+                agentName={selectedAgent.full_name || 'Unnamed Agent'}
+                onSuccess={quickRefetch}
+              />
+            </div>
           )}
         </div>
 
