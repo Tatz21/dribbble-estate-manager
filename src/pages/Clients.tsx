@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, Filter, Phone, Mail, MapPin, User, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, Phone, Mail, MapPin, User, Calendar, Edit, Trash2, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useClients } from '@/hooks/useSupabaseQuery';
 import { useToast } from '@/hooks/use-toast';
@@ -70,12 +70,20 @@ export default function Clients() {
             </p>
           </div>
           
-          <Link to="/clients/add">
-            <Button className="btn-gradient">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Client
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/clients/preferences">
+              <Button variant="outline">
+                <Settings className="h-4 w-4 mr-2" />
+                Manage Preferences
+              </Button>
+            </Link>
+            <Link to="/clients/add">
+              <Button className="btn-gradient">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Client
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Filters */}
