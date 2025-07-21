@@ -6,58 +6,46 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, Filter, MapPin, Bed, Bath, Square, Eye, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// Mock data
-const properties = [
-  {
-    id: 1,
-    title: "Luxury 3BHK in Bandra West",
-    type: "Apartment",
-    price: "₹2.5 Cr",
-    location: "Bandra West, Mumbai",
-    bedrooms: 3,
-    bathrooms: 2,
-    area: "1200 sq ft",
-    status: "Available",
-    image: "/placeholder.svg",
-    tags: ["Hot Deal", "RERA Approved"]
-  },
-  {
-    id: 2,
-    title: "Commercial Space in BKC",
-    type: "Commercial",
-    price: "₹5.0 Cr",
-    location: "BKC, Mumbai",
-    bedrooms: 0,
-    bathrooms: 1,
-    area: "2000 sq ft",
-    status: "Under Negotiation",
-    image: "/placeholder.svg",
-    tags: ["Prime Location"]
-  },
-  {
-    id: 3,
-    title: "2BHK Sea View Apartment",
-    type: "Apartment",
-    price: "₹1.8 Cr",
-    location: "Worli, Mumbai",
-    bedrooms: 2,
-    bathrooms: 2,
-    area: "950 sq ft",
-    status: "Sold",
-    image: "/placeholder.svg",
-    tags: ["Sea View", "Recently Sold"]
-  },
-];
+import { useProperties, usePropertyTypes } from '@/hooks/useSupabaseQuery';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Properties() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const { data: properties = [], isLoading } = useProperties();
+  const { data: propertyTypes = [] } = usePropertyTypes();
+  const { toast } = useToast();
+
+  const handleDelete = async (propertyId: string) => {
+    if (!confirm('Are you sure you want to delete this property?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Property deleted",
+        description: "The property has been successfully deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete property.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = !selectedType || property.type === selectedType;
+                         property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         property.city.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = !selectedType || property.property_type?.name === selectedType;
     return matchesSearch && matchesType;
   });
 
@@ -101,10 +89,9 @@ export default function Properties() {
                 onChange={(e) => setSelectedType(e.target.value)}
               >
                 <option value="">All Types</option>
-                <option value="Apartment">Apartment</option>
-                <option value="Commercial">Commercial</option>
-                <option value="Villa">Villa</option>
-                <option value="Plot">Plot</option>
+                {propertyTypes.map((type) => (
+                  <option key={type.id} value={type.name}>{type.name}</option>
+                ))}
               </select>
               
               <Button variant="outline">
@@ -116,81 +103,107 @@ export default function Properties() {
         </Card>
 
         {/* Property Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProperties.map((property) => (
-            <Card key={property.id} className="card-modern overflow-hidden group">
-              <div className="relative">
-                <img
-                  src={property.image}
-                  alt={property.title}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-3 left-3 space-y-1">
-                  {property.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <Badge 
-                  className={`absolute top-3 right-3 ${
-                    property.status === 'Available' ? 'bg-success' :
-                    property.status === 'Sold' ? 'bg-destructive' :
-                    'bg-warning'
-                  }`}
-                >
-                  {property.status}
-                </Badge>
-              </div>
-              
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{property.title}</CardTitle>
-                <div className="flex items-center text-muted-foreground text-sm">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  {property.location}
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-2xl font-bold text-primary">{property.price}</span>
-                  <span className="text-sm text-muted-foreground">{property.type}</span>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="card-modern animate-pulse">
+                <div className="h-48 bg-muted"></div>
+                <CardHeader>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
+                  <div className="h-3 bg-muted rounded w-full"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProperties.map((property) => (
+              <Card key={property.id} className="card-modern overflow-hidden group">
+                <div className="relative">
+                  <img
+                    src={property.images?.[0] || "/placeholder.svg"}
+                    alt={property.title}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3 space-y-1">
+                    {property.features?.slice(0, 2).map((feature, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Badge 
+                    className={`absolute top-3 right-3 ${
+                      property.status === 'available' ? 'bg-success' :
+                      property.status === 'sold' ? 'bg-destructive' :
+                      'bg-warning'
+                    }`}
+                  >
+                    {property.status}
+                  </Badge>
                 </div>
                 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  {property.bedrooms > 0 && (
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{property.title}</CardTitle>
+                  <div className="flex items-center text-muted-foreground text-sm">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {property.city}, {property.state}
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-2xl font-bold text-primary">₹{property.price.toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">{property.property_type?.name}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                    {property.bedrooms > 0 && (
+                      <div className="flex items-center">
+                        <Bed className="h-4 w-4 mr-1" />
+                        {property.bedrooms}
+                      </div>
+                    )}
                     <div className="flex items-center">
-                      <Bed className="h-4 w-4 mr-1" />
-                      {property.bedrooms}
+                      <Bath className="h-4 w-4 mr-1" />
+                      {property.bathrooms}
                     </div>
-                  )}
-                  <div className="flex items-center">
-                    <Bath className="h-4 w-4 mr-1" />
-                    {property.bathrooms}
+                    <div className="flex items-center">
+                      <Square className="h-4 w-4 mr-1" />
+                      {property.square_feet} sq ft
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <Square className="h-4 w-4 mr-1" />
-                    {property.area}
+                  
+                  <div className="flex gap-2">
+                    <Link to={`/properties/${property.id}`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    </Link>
+                    <Link to={`/properties/${property.id}/edit`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDelete(property.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -8,54 +8,110 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Upload, Plus, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { usePropertyTypes, useCreateProperty, useProfile } from '@/hooks/useSupabaseQuery';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AddProperty() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: propertyTypes = [] } = usePropertyTypes();
+  const createProperty = useCreateProperty();
   
   const [formData, setFormData] = useState({
     title: '',
-    type: '',
+    property_type_id: '',
     price: '',
-    location: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
     bedrooms: '',
     bathrooms: '',
-    area: '',
+    square_feet: '',
     description: '',
-    amenities: [],
+    features: [],
     images: []
   });
 
-  const [amenityInput, setAmenityInput] = useState('');
+  const [featureInput, setFeatureInput] = useState('');
+  const [imageFiles, setImageFiles] = useState([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Here you would typically send data to your backend
-    console.log('Property data:', formData);
+    if (!profile) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add a property.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    toast({
-      title: "Property added successfully",
-      description: "The property has been added to your listings.",
-    });
-    
-    navigate('/properties');
-  };
+    try {
+      const propertyData = {
+        title: formData.title,
+        property_type_id: formData.property_type_id,
+        price: parseFloat(formData.price),
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip_code: formData.zip_code,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+        bathrooms: formData.bathrooms ? parseFloat(formData.bathrooms) : null,
+        square_feet: formData.square_feet ? parseFloat(formData.square_feet) : null,
+        description: formData.description,
+        features: formData.features,
+        images: formData.images,
+        agent_id: profile.id,
+        status: 'available'
+      };
 
-  const addAmenity = () => {
-    if (amenityInput.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        amenities: [...prev.amenities, amenityInput.trim()]
-      }));
-      setAmenityInput('');
+      await createProperty.mutateAsync(propertyData);
+      
+      toast({
+        title: "Property added successfully",
+        description: "The property has been added to your listings.",
+      });
+      
+      navigate('/properties');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add property. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const removeAmenity = (index: number) => {
+  const addFeature = () => {
+    if (featureInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        features: [...prev.features, featureInput.trim()]
+      }));
+      setFeatureInput('');
+    }
+  };
+
+  const removeFeature = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      amenities: prev.amenities.filter((_, i) => i !== index)
+      features: prev.features.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setImageFiles(prev => [...prev, ...files]);
+    
+    // For now, just store file names. In a real app, you'd upload to storage
+    const fileNames = files.map(file => file.name);
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...fileNames]
     }));
   };
 
@@ -97,40 +153,71 @@ export default function AddProperty() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="type">Property Type *</Label>
+                  <Label htmlFor="property_type_id">Property Type *</Label>
                   <select
-                    id="type"
+                    id="property_type_id"
                     className="w-full px-3 py-2 border border-border rounded-md bg-background"
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    value={formData.property_type_id}
+                    onChange={(e) => setFormData({...formData, property_type_id: e.target.value})}
                     required
                   >
                     <option value="">Select Type</option>
-                    <option value="Apartment">Apartment</option>
-                    <option value="Villa">Villa</option>
-                    <option value="Commercial">Commercial</option>
-                    <option value="Plot">Plot</option>
-                    <option value="Warehouse">Warehouse</option>
+                    {propertyTypes.map((type) => (
+                      <option key={type.id} value={type.id}>{type.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="price">Price *</Label>
+                  <Label htmlFor="price">Price (₹) *</Label>
                   <Input
                     id="price"
-                    placeholder="e.g., 2.5 Cr"
+                    type="number"
+                    placeholder="e.g., 25000000"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
                     required
                   />
                 </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <Label htmlFor="location">Location *</Label>
+                  <Label htmlFor="address">Address *</Label>
                   <Input
-                    id="location"
-                    placeholder="e.g., Bandra West, Mumbai"
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    id="address"
+                    placeholder="Street address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
                     required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    placeholder="Mumbai"
+                    value={formData.city}
+                    onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state">State *</Label>
+                  <Input
+                    id="state"
+                    placeholder="Maharashtra"
+                    value={formData.state}
+                    onChange={(e) => setFormData({...formData, state: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="zip_code">ZIP Code</Label>
+                  <Input
+                    id="zip_code"
+                    placeholder="400050"
+                    value={formData.zip_code}
+                    onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
                   />
                 </div>
               </div>
@@ -165,12 +252,13 @@ export default function AddProperty() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="area">Area (sq ft)</Label>
+                  <Label htmlFor="square_feet">Area (sq ft)</Label>
                   <Input
-                    id="area"
+                    id="square_feet"
+                    type="number"
                     placeholder="e.g., 1200"
-                    value={formData.area}
-                    onChange={(e) => setFormData({...formData, area: e.target.value})}
+                    value={formData.square_feet}
+                    onChange={(e) => setFormData({...formData, square_feet: e.target.value})}
                   />
                 </div>
               </div>
@@ -188,31 +276,31 @@ export default function AddProperty() {
             </CardContent>
           </Card>
 
-          {/* Amenities */}
+          {/* Features */}
           <Card className="card-modern">
             <CardHeader>
-              <CardTitle>Amenities</CardTitle>
+              <CardTitle>Features</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Add amenity (e.g., Swimming Pool, Gym)"
-                  value={amenityInput}
-                  onChange={(e) => setAmenityInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
+                  placeholder="Add feature (e.g., Swimming Pool, Gym, Parking)"
+                  value={featureInput}
+                  onChange={(e) => setFeatureInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
                 />
-                <Button type="button" onClick={addAmenity}>
+                <Button type="button" onClick={addFeature}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
               
               <div className="flex flex-wrap gap-2">
-                {formData.amenities.map((amenity, index) => (
+                {formData.features.map((feature, index) => (
                   <div key={index} className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                    {amenity}
+                    {feature}
                     <button
                       type="button"
-                      onClick={() => removeAmenity(index)}
+                      onClick={() => removeFeature(index)}
                       className="hover:text-destructive"
                     >
                       <X className="h-3 w-3" />
@@ -228,16 +316,53 @@ export default function AddProperty() {
             <CardHeader>
               <CardTitle>Property Images</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
                 <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground mb-2">
-                  Drag and drop images here, or click to select
+                  Choose images to upload
                 </p>
-                <Button type="button" variant="outline">
-                  Choose Files
-                </Button>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload">
+                  <Button type="button" variant="outline" className="cursor-pointer">
+                    Choose Files
+                  </Button>
+                </label>
               </div>
+              
+              {imageFiles.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {imageFiles.map((file, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageFiles(prev => prev.filter((_, i) => i !== index));
+                          setFormData(prev => ({
+                            ...prev,
+                            images: prev.images.filter((_, i) => i !== index)
+                          }));
+                        }}
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
