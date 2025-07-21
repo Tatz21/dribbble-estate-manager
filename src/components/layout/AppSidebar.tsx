@@ -90,11 +90,6 @@ const menuItems = [
     ]
   },
   {
-    title: "Inventory",
-    url: "/inventory",
-    icon: Package
-  },
-  {
     title: "Documents",
     url: "/documents",
     icon: FileText
