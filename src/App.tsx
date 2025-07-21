@@ -25,7 +25,7 @@ import AddAgent from "./pages/AddAgent";
 import AgentPerformance from "./pages/AgentPerformance";
 import ViewAgent from "./pages/ViewAgent";
 import EditAgent from "./pages/EditAgent";
-import Inventory from "./pages/Inventory";
+
 import Documents from "./pages/Documents";
 import Billing from "./pages/Billing";
 import Analytics from "./pages/Analytics";
@@ -64,7 +64,7 @@ const App = () => (
             <Route path="/agents/view/:id" element={<ProtectedRoute><ViewAgent /></ProtectedRoute>} />
             <Route path="/agents/edit/:id" element={<ProtectedRoute><EditAgent /></ProtectedRoute>} />
             <Route path="/agents/performance" element={<ProtectedRoute><AgentPerformance /></ProtectedRoute>} />
-            <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+            
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/billing/invoices" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
