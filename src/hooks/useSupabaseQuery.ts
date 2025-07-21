@@ -152,6 +152,7 @@ export function useCreateProperty() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
+      queryClient.invalidateQueries({ queryKey: ['property-counts'] });
     }
   });
 }

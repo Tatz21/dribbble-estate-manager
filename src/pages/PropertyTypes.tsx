@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { usePropertyTypes } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 
 const PropertyTypes = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +22,29 @@ const PropertyTypes = () => {
   
   const { data: propertyTypes = [], isLoading } = usePropertyTypes();
   const { toast } = useToast();
+
+  // Fetch property counts for each type
+  const { data: propertyCounts = {} } = useQuery({
+    queryKey: ['property-counts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('property_type_id')
+        .not('property_type_id', 'is', null);
+      
+      if (error) throw error;
+      
+      // Count properties by type
+      const counts = {};
+      data.forEach(property => {
+        if (property.property_type_id) {
+          counts[property.property_type_id] = (counts[property.property_type_id] || 0) + 1;
+        }
+      });
+      
+      return counts;
+    }
+  });
 
   const iconMap = {
     'Residential': Home,
@@ -203,6 +227,7 @@ const PropertyTypes = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTypes.map((type) => {
               const IconComponent = getIcon(type.name);
+              const propertyCount = propertyCounts[type.id] || 0;
               return (
                 <Card key={type.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
@@ -214,7 +239,7 @@ const PropertyTypes = () => {
                         <div>
                           <CardTitle className="text-lg">{type.name}</CardTitle>
                           <Badge variant="secondary" className="mt-1">
-                            0 properties
+                            {propertyCount} {propertyCount === 1 ? 'property' : 'properties'}
                           </Badge>
                         </div>
                       </div>

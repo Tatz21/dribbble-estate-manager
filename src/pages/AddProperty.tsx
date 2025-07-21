@@ -82,7 +82,7 @@ export default function AddProperty() {
       const uploadedImageUrls = await uploadImages(imageFiles);
       const propertyData = {
         title: formData.title,
-        property_type_id: formData.property_type_id,
+        property_type_id: formData.property_type_id || null,
         price: parseFloat(formData.price),
         address: formData.address,
         city: formData.city,
