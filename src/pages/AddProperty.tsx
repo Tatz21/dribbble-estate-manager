@@ -137,6 +137,8 @@ export default function AddProperty() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    console.log('Files selected:', files.length);
+    
     if (files.length === 0) return;
     
     // Validate file types
@@ -161,7 +163,24 @@ export default function AddProperty() {
       return;
     }
     
-    setImageFiles(prev => [...prev, ...validFiles]);
+    console.log('Adding files to state:', validFiles.length);
+    setImageFiles(prev => {
+      const newFiles = [...prev, ...validFiles];
+      console.log('Total files after update:', newFiles.length);
+      return newFiles;
+    });
+    
+    // Clear the input value so the same file can be selected again if needed
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    console.log('Removing image at index:', index);
+    setImageFiles(prev => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      console.log('Files after removal:', newFiles.length);
+      return newFiles;
+    });
   };
 
   return (
@@ -369,7 +388,10 @@ export default function AddProperty() {
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
                 <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground mb-2">
-                  Choose images to upload
+                  Choose images to upload (Max 5MB each)
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Selected: {imageFiles.length} files
                 </p>
                 <input
                   type="file"
@@ -380,8 +402,8 @@ export default function AddProperty() {
                   id="image-upload"
                 />
                 <label htmlFor="image-upload">
-                  <Button type="button" variant="outline" className="cursor-pointer">
-                    Choose Files
+                  <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                    <span>Choose Files</span>
                   </Button>
                 </label>
               </div>
@@ -397,9 +419,7 @@ export default function AddProperty() {
                       />
                       <button
                         type="button"
-                        onClick={() => {
-                        setImageFiles(prev => prev.filter((_, i) => i !== index));
-                        }}
+                        onClick={() => removeImage(index)}
                         className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
