@@ -3,50 +3,40 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Users, Building, Target, DollarSign, Calendar, Star, ArrowUp, ArrowDown } from 'lucide-react';
-
-// Mock data
-const analyticsData = {
-  overview: {
-    totalRevenue: "₹45.2 Cr",
-    revenueGrowth: "+12.5%",
-    totalDeals: 156,
-    dealsGrowth: "+8.2%",
-    activeAgents: 12,
-    agentsGrowth: "+2",
-    avgDealValue: "₹2.8 Cr",
-    avgGrowth: "+5.4%"
-  },
-  topPerformers: [
-    { name: "Priya Sharma", deals: 24, revenue: "₹12.5 Cr", growth: "+15%" },
-    { name: "Rajesh Kumar", deals: 20, revenue: "₹10.8 Cr", growth: "+10%" },
-    { name: "Amit Singh", deals: 18, revenue: "₹9.2 Cr", growth: "+8%" },
-    { name: "Sneha Patel", deals: 16, revenue: "₹8.5 Cr", growth: "+12%" },
-    { name: "Vikram Gupta", deals: 14, revenue: "₹7.8 Cr", growth: "+6%" }
-  ],
-  propertyTypes: [
-    { type: "Residential", count: 89, percentage: 57, revenue: "₹25.8 Cr" },
-    { type: "Commercial", count: 45, percentage: 29, revenue: "₹15.2 Cr" },
-    { type: "Luxury", count: 15, percentage: 10, revenue: "₹3.2 Cr" },
-    { type: "Plots", count: 7, percentage: 4, revenue: "₹1.0 Cr" }
-  ],
-  leadPipeline: [
-    { stage: "New Leads", count: 45, percentage: 35 },
-    { stage: "Contacted", count: 32, percentage: 25 },
-    { stage: "Qualified", count: 25, percentage: 20 },
-    { stage: "Negotiation", count: 18, percentage: 14 },
-    { stage: "Closed", count: 8, percentage: 6 }
-  ],
-  monthlyTrends: [
-    { month: "Jan", deals: 12, revenue: 3.2 },
-    { month: "Feb", deals: 18, revenue: 4.8 },
-    { month: "Mar", deals: 15, revenue: 4.2 },
-    { month: "Apr", deals: 22, revenue: 6.5 },
-    { month: "May", deals: 28, revenue: 8.2 },
-    { month: "Jun", deals: 25, revenue: 7.8 }
-  ]
-};
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 export default function Analytics() {
+  const { data: analyticsData, isLoading, error } = useAnalytics();
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading analytics...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-destructive">Error loading analytics data</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">No analytics data available</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
   return (
     <DashboardLayout>
       <div className="space-y-6">
