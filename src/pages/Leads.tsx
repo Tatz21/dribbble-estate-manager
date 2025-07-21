@@ -89,10 +89,12 @@ export default function Leads() {
                 Pipeline View
               </Button>
             </Link>
-            <Button className="btn-gradient">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Lead
-            </Button>
+            <Link to="/leads/add">
+              <Button className="btn-gradient">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Lead
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -154,10 +156,12 @@ export default function Leads() {
                     ? "Start adding leads to see them here." 
                     : "Try adjusting your filters to see more results."}
                 </p>
-                <Button className="btn-gradient">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add First Lead
-                </Button>
+                <Link to="/leads/add">
+                  <Button className="btn-gradient">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Lead
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           ) : (
