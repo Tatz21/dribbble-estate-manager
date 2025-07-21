@@ -200,14 +200,60 @@ export default function Documents() {
     await deleteDocument.mutateAsync(documentId);
   };
 
-  const handleDownload = (fileUrl: string, title: string) => {
-    if (fileUrl) {
+  const handleDownload = async (fileUrl: string, title: string) => {
+    if (!fileUrl) {
+      toast({
+        title: "Error",
+        description: "No file URL available for download.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Show loading toast
+      toast({
+        title: "Downloading...",
+        description: "Your file download will start shortly.",
+      });
+
+      // Fetch the file as a blob
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      
+      // Create a blob URL and download
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = fileUrl;
-      link.download = title;
+      link.href = blobUrl;
+      
+      // Get file extension from URL or default to .pdf
+      const urlParts = fileUrl.split('.');
+      const extension = urlParts.length > 1 ? `.${urlParts[urlParts.length - 1].split('?')[0]}` : '.pdf';
+      const fileName = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + extension;
+      
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
+      
+      // Clean up
       document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      
+      toast({
+        title: "Download Complete",
+        description: `${fileName} has been downloaded successfully.`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error downloading the file. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
