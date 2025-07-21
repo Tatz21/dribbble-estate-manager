@@ -5,17 +5,31 @@ export function useLeadsWithDetails() {
   return useQuery({
     queryKey: ['leads-detailed'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get leads without joins to avoid relationship issues
+      const { data: leadsData, error: leadsError } = await supabase
         .from('leads')
-        .select(`
-          *,
-          assigned_agent:agents(full_name),
-          property:properties(title, address, city, state, price)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (leadsError) throw leadsError;
+      
+      // Then get related data separately
+      const agentIds = leadsData?.filter(l => l.assigned_agent_id).map(l => l.assigned_agent_id) || [];
+      const propertyIds = leadsData?.filter(l => l.property_id).map(l => l.property_id) || [];
+      
+      const [agentsRes, propertiesRes] = await Promise.all([
+        agentIds.length > 0 ? supabase.from('agents').select('id, full_name').in('id', agentIds) : Promise.resolve({ data: [] }),
+        propertyIds.length > 0 ? supabase.from('properties').select('id, title, address, city, state, price').in('id', propertyIds) : Promise.resolve({ data: [] })
+      ]);
+
+      // Manually join the data
+      const enrichedLeads = leadsData?.map(lead => ({
+        ...lead,
+        assigned_agent: agentsRes.data?.find(a => a.id === lead.assigned_agent_id) || null,
+        property: propertiesRes.data?.find(p => p.id === lead.property_id) || null
+      }));
+
+      return enrichedLeads || [];
     }
   });
 }
@@ -24,17 +38,32 @@ export function useLeadsPipeline() {
   return useQuery({
     queryKey: ['leads-pipeline'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get leads without joins to avoid relationship issues
+      const { data: leadsData, error: leadsError } = await supabase
         .from('leads')
-        .select(`
-          *,
-          assigned_agent:agents(full_name),
-          property:properties(title, price)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (leadsError) throw leadsError;
+      
+      // Get related data separately
+      const agentIds = leadsData?.filter(l => l.assigned_agent_id).map(l => l.assigned_agent_id) || [];
+      const propertyIds = leadsData?.filter(l => l.property_id).map(l => l.property_id) || [];
+      
+      const [agentsRes, propertiesRes] = await Promise.all([
+        agentIds.length > 0 ? supabase.from('agents').select('id, full_name').in('id', agentIds) : Promise.resolve({ data: [] }),
+        propertyIds.length > 0 ? supabase.from('properties').select('id, title, price').in('id', propertyIds) : Promise.resolve({ data: [] })
+      ]);
 
+      // Manually join the data
+      const enrichedLeads = leadsData?.map(lead => ({
+        ...lead,
+        assigned_agent: agentsRes.data?.find(a => a.id === lead.assigned_agent_id) || null,
+        property: propertiesRes.data?.find(p => p.id === lead.property_id) || null
+      }));
+
+      if (!enrichedLeads) return [];
+      
       // Group leads by status for pipeline view
       const pipeline = [
         { id: 1, name: 'New', status: 'new', color: 'bg-blue-500', leads: [] },
@@ -45,7 +74,7 @@ export function useLeadsPipeline() {
       ];
 
       // Distribute leads into pipeline stages
-      data?.forEach(lead => {
+      enrichedLeads.forEach(lead => {
         const stage = pipeline.find(p => p.status === lead.status);
         if (stage) {
           stage.leads.push(lead);
