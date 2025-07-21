@@ -15,6 +15,7 @@ import EditClient from "./pages/EditClient";
 import ClientPreferences from "./pages/ClientPreferences";
 import Meetings from "./pages/Meetings";
 import ScheduleMeeting from "./pages/ScheduleMeeting";
+import EditMeeting from "./pages/EditMeeting";
 import Leads from "./pages/Leads";
 import LeadsPipeline from "./pages/LeadsPipeline";
 import Agents from "./pages/Agents";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/clients/preferences" element={<ProtectedRoute><ClientPreferences /></ProtectedRoute>} />
             <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
             <Route path="/meetings/schedule" element={<ProtectedRoute><ScheduleMeeting /></ProtectedRoute>} />
+            <Route path="/meetings/edit/:id" element={<ProtectedRoute><EditMeeting /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/leads/pipeline" element={<ProtectedRoute><LeadsPipeline /></ProtectedRoute>} />
             <Route path="/leads/sources" element={<ProtectedRoute><Leads /></ProtectedRoute>} />

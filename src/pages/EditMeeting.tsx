@@ -1,23 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Calendar, Clock, MapPin, User, Loader2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useClients, useAgents, useProperties, useCreateMeeting } from '@/hooks/useSupabaseQuery';
+import { useClients, useAgents, useProperties } from '@/hooks/useSupabaseQuery';
+import { supabase } from '@/integrations/supabase/client';
 
-export default function ScheduleMeeting() {
+export default function EditMeeting() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: clients = [] } = useClients();
   const { data: agents = [] } = useAgents();
   const { data: properties = [] } = useProperties();
-  const createMeeting = useCreateMeeting();
   
+  const [loading, setLoading] = useState(false);
+  const [meeting, setMeeting] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: '',
     meeting_type: '',
@@ -31,43 +35,101 @@ export default function ScheduleMeeting() {
     status: 'scheduled'
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Combine date and time into a proper datetime
-      const meetingDateTime = new Date(formData.meeting_date).toISOString();
-      
-      const meetingData = {
-        title: formData.title,
-        meeting_type: formData.meeting_type,
-        client_id: formData.client_id || null,
-        agent_id: formData.agent_id || null,
-        property_id: formData.property_id || null,
-        meeting_date: meetingDateTime,
-        duration_minutes: formData.duration_minutes,
-        location: formData.location,
-        description: formData.description,
-        status: formData.status
-      };
+  useEffect(() => {
+    if (id) {
+      fetchMeeting();
+    }
+  }, [id]);
 
-      await createMeeting.mutateAsync(meetingData);
-      
-      toast({
-        title: "Meeting scheduled successfully",
-        description: "The meeting has been added to your calendar.",
+  const fetchMeeting = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('meetings')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      setMeeting(data);
+      setFormData({
+        title: data.title || '',
+        meeting_type: data.meeting_type || '',
+        client_id: data.client_id || '',
+        agent_id: data.agent_id || '',
+        property_id: data.property_id || '',
+        meeting_date: data.meeting_date ? new Date(data.meeting_date).toISOString().slice(0, 16) : '',
+        duration_minutes: data.duration_minutes || 60,
+        location: data.location || '',
+        description: data.description || '',
+        status: data.status || 'scheduled'
       });
-      
-      navigate('/meetings');
     } catch (error) {
-      console.error('Error creating meeting:', error);
+      console.error('Error fetching meeting:', error);
       toast({
         title: "Error",
-        description: "Failed to schedule meeting. Please try again.",
+        description: "Failed to load meeting details.",
         variant: "destructive",
       });
     }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const meetingDateTime = new Date(formData.meeting_date).toISOString();
+      
+      const { error } = await supabase
+        .from('meetings')
+        .update({
+          title: formData.title,
+          meeting_type: formData.meeting_type,
+          client_id: formData.client_id || null,
+          agent_id: formData.agent_id || null,
+          property_id: formData.property_id || null,
+          meeting_date: meetingDateTime,
+          duration_minutes: formData.duration_minutes,
+          location: formData.location,
+          description: formData.description,
+          status: formData.status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Meeting updated",
+        description: "Meeting details have been successfully updated.",
+      });
+
+      navigate('/meetings');
+    } catch (error) {
+      console.error('Error updating meeting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update meeting. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!meeting) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Edit Meeting</h1>
+            <p className="text-muted-foreground mt-1">Loading meeting details...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -81,9 +143,9 @@ export default function ScheduleMeeting() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Schedule Meeting</h1>
+            <h1 className="text-3xl font-bold text-foreground">Edit Meeting</h1>
             <p className="text-muted-foreground mt-1">
-              Create a new meeting or appointment
+              Update meeting details and settings
             </p>
           </div>
         </div>
@@ -179,10 +241,7 @@ export default function ScheduleMeeting() {
           {/* Date & Time */}
           <Card className="card-modern">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Date & Time
-              </CardTitle>
+              <CardTitle>Schedule & Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -226,34 +285,22 @@ export default function ScheduleMeeting() {
             </CardContent>
           </Card>
 
-          {/* Location */}
+          {/* Location & Description */}
           <Card className="card-modern">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Location
-              </CardTitle>
+              <CardTitle>Additional Details</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="location">Meeting Location *</Label>
+                <Label htmlFor="location">Meeting Location</Label>
                 <Input
                   id="location"
                   placeholder="e.g., Office, Property Address, or Virtual"
                   value={formData.location}
                   onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  required
                 />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Description */}
-          <Card className="card-modern">
-            <CardHeader>
-              <CardTitle>Additional Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
+              
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Textarea
@@ -274,15 +321,9 @@ export default function ScheduleMeeting() {
                 Cancel
               </Button>
             </Link>
-            <Button type="submit" disabled={createMeeting.isPending} className="btn-gradient">
-              {createMeeting.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Scheduling...
-                </>
-              ) : (
-                'Schedule Meeting'
-              )}
+            <Button type="submit" disabled={loading} className="btn-gradient">
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              Update Meeting
             </Button>
           </div>
         </form>
