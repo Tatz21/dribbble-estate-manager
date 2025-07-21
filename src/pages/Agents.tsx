@@ -203,14 +203,18 @@ export default function Agents() {
                     )}
                     
                     <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
+                      <Link to={`/agents/view/${agent.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                      <Link to={`/agents/edit/${agent.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </Link>
                       <Button 
                         variant="outline" 
                         size="sm"

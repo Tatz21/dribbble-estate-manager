@@ -20,6 +20,8 @@ import LeadsPipeline from "./pages/LeadsPipeline";
 import Agents from "./pages/Agents";
 import AddAgent from "./pages/AddAgent";
 import AgentPerformance from "./pages/AgentPerformance";
+import ViewAgent from "./pages/ViewAgent";
+import EditAgent from "./pages/EditAgent";
 import Inventory from "./pages/Inventory";
 import Documents from "./pages/Documents";
 import Billing from "./pages/Billing";
@@ -52,6 +54,8 @@ const App = () => (
             <Route path="/leads/sources" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
             <Route path="/agents/add" element={<ProtectedRoute><AddAgent /></ProtectedRoute>} />
+            <Route path="/agents/view/:id" element={<ProtectedRoute><ViewAgent /></ProtectedRoute>} />
+            <Route path="/agents/edit/:id" element={<ProtectedRoute><EditAgent /></ProtectedRoute>} />
             <Route path="/agents/performance" element={<ProtectedRoute><AgentPerformance /></ProtectedRoute>} />
             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />

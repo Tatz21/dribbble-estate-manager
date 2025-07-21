@@ -5,96 +5,95 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Search, Trophy, TrendingUp, TrendingDown, Target, DollarSign, Calendar, Star, Filter } from 'lucide-react';
+import { ArrowLeft, Search, Trophy, TrendingUp, Target, DollarSign, Calendar, Star, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// Mock performance data
-const performanceData = [
-  {
-    id: 1,
-    name: "Rajesh Kumar",
-    role: "Senior Agent",
-    avatar: "RK",
-    metrics: {
-      dealsCompleted: 24,
-      totalRevenue: 12500000,
-      targetAchievement: 85,
-      avgDealValue: 520833,
-      clientSatisfaction: 4.8,
-      responseTime: "2.5 hrs",
-      conversionRate: 32
-    },
-    monthlyPerformance: [
-      { month: "Jan", deals: 4, revenue: 2100000 },
-      { month: "Feb", deals: 3, revenue: 1800000 },
-      { month: "Mar", deals: 5, revenue: 2600000 },
-      { month: "Apr", deals: 4, revenue: 2000000 },
-      { month: "May", deals: 4, revenue: 2200000 },
-      { month: "Jun", deals: 4, revenue: 1800000 }
-    ],
-    specialization: ["Residential", "Commercial"],
-    status: "Above Target"
-  },
-  {
-    id: 2,
-    name: "Priya Sharma",
-    role: "Agent",
-    avatar: "PS",
-    metrics: {
-      dealsCompleted: 18,
-      totalRevenue: 8200000,
-      targetAchievement: 72,
-      avgDealValue: 455556,
-      clientSatisfaction: 4.6,
-      responseTime: "3.1 hrs",
-      conversionRate: 28
-    },
-    monthlyPerformance: [
-      { month: "Jan", deals: 3, revenue: 1400000 },
-      { month: "Feb", deals: 3, revenue: 1350000 },
-      { month: "Mar", deals: 3, revenue: 1400000 },
-      { month: "Apr", deals: 3, revenue: 1300000 },
-      { month: "May", deals: 3, revenue: 1375000 },
-      { month: "Jun", deals: 3, revenue: 1375000 }
-    ],
-    specialization: ["Residential", "Luxury"],
-    status: "On Target"
-  },
-  {
-    id: 3,
-    name: "Amit Singh",
-    role: "Junior Agent",
-    avatar: "AS",
-    metrics: {
-      dealsCompleted: 12,
-      totalRevenue: 4800000,
-      targetAchievement: 48,
-      avgDealValue: 400000,
-      clientSatisfaction: 4.3,
-      responseTime: "4.2 hrs",
-      conversionRate: 22
-    },
-    monthlyPerformance: [
-      { month: "Jan", deals: 2, revenue: 800000 },
-      { month: "Feb", deals: 2, revenue: 750000 },
-      { month: "Mar", deals: 2, revenue: 850000 },
-      { month: "Apr", deals: 2, revenue: 800000 },
-      { month: "May", deals: 2, revenue: 800000 },
-      { month: "Jun", deals: 2, revenue: 800000 }
-    ],
-    specialization: ["Commercial", "Plots"],
-    status: "Below Target"
-  }
-];
+import { useAgents } from '@/hooks/useSupabaseQuery';
 
 export default function AgentPerformance() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedAgent, setSelectedAgent] = useState(performanceData[0]);
+  const { data: agents = [], isLoading } = useAgents();
+  
+  // Mock performance metrics for demonstration
+  const getAgentPerformanceData = (agent: any) => ({
+    ...agent,
+    metrics: {
+      dealsCompleted: Math.floor(Math.random() * 30) + 5,
+      totalRevenue: Math.floor(Math.random() * 10000000) + 2000000,
+      targetAchievement: Math.floor(Math.random() * 40) + 60,
+      avgDealValue: Math.floor(Math.random() * 500000) + 300000,
+      clientSatisfaction: (Math.random() * 1.5 + 3.5).toFixed(1),
+      responseTime: `${(Math.random() * 3 + 1).toFixed(1)} hrs`,
+      conversionRate: Math.floor(Math.random() * 20) + 20
+    },
+    monthlyPerformance: [
+      { month: "Jan", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
+      { month: "Feb", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
+      { month: "Mar", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
+      { month: "Apr", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
+      { month: "May", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 },
+      { month: "Jun", deals: Math.floor(Math.random() * 5) + 1, revenue: Math.floor(Math.random() * 1000000) + 500000 }
+    ],
+    status: Math.random() > 0.6 ? 'Above Target' : Math.random() > 0.3 ? 'On Target' : 'Below Target'
+  });
 
-  const filteredAgents = performanceData.filter(agent =>
-    agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    agent.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const performanceAgents = agents.map(getAgentPerformanceData);
+  const [selectedAgent, setSelectedAgent] = useState<any>(null);
+
+  const filteredAgents = performanceAgents.filter(agent =>
+    agent.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    agent.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Set first agent as selected when data loads
+  React.useEffect(() => {
+    if (performanceAgents.length > 0 && !selectedAgent) {
+      setSelectedAgent(performanceAgents[0]);
+    }
+  }, [performanceAgents.length, selectedAgent]);
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Agent Performance</h1>
+            <p className="text-muted-foreground mt-1">Loading performance data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (agents.length === 0) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Link to="/agents">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Agents
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Agent Performance</h1>
+              <p className="text-muted-foreground mt-1">No agents found to analyze</p>
+            </div>
+          </div>
+          <div className="text-center py-12">
+            <User className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <p className="text-lg font-medium text-foreground mb-2">No agents available</p>
+            <p className="text-muted-foreground mb-4">Add agents first to view their performance metrics</p>
+            <Link to="/agents/add">
+              <Button className="btn-gradient">Add Your First Agent</Button>
+            </Link>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!selectedAgent) return null;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -150,7 +149,7 @@ export default function AgentPerformance() {
                 />
               </div>
               
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
                 {filteredAgents.map((agent) => (
                   <div
                     key={agent.id}
@@ -163,10 +162,10 @@ export default function AgentPerformance() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-primary font-semibold text-sm">{agent.avatar}</span>
+                        <User className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <div className="font-medium">{agent.name}</div>
+                        <div className="font-medium">{agent.full_name || 'Unnamed Agent'}</div>
                         <div className="text-sm text-muted-foreground">{agent.role}</div>
                         <Badge className={`text-xs mt-1 ${getStatusColor(agent.status)}`}>
                           {agent.status}
@@ -187,17 +186,23 @@ export default function AgentPerformance() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-primary font-bold text-xl">{selectedAgent.avatar}</span>
+                      <User className="h-8 w-8 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold">{selectedAgent.name}</h2>
+                      <h2 className="text-2xl font-bold">{selectedAgent.full_name || 'Unnamed Agent'}</h2>
                       <p className="text-muted-foreground">{selectedAgent.role}</p>
                       <div className="flex gap-2 mt-2">
-                        {selectedAgent.specialization.map((spec) => (
-                          <Badge key={spec} variant="secondary" className="text-xs">
-                            {spec}
+                        {selectedAgent.specialization && selectedAgent.specialization.length > 0 ? (
+                          selectedAgent.specialization.map((spec: string) => (
+                            <Badge key={spec} variant="secondary" className="text-xs">
+                              {spec}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">
+                            General
                           </Badge>
-                        ))}
+                        )}
                       </div>
                     </div>
                   </div>
