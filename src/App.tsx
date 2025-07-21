@@ -8,6 +8,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import AddProperty from "./pages/AddProperty";
+import ViewProperty from "./pages/ViewProperty";
+import EditProperty from "./pages/EditProperty";
 import PropertyTypes from "./pages/PropertyTypes";
 import LeadSources from "./pages/LeadSources";
 import AddLead from "./pages/AddLead";
@@ -47,6 +49,8 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
             <Route path="/properties/add" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
+            <Route path="/properties/:id" element={<ProtectedRoute><ViewProperty /></ProtectedRoute>} />
+            <Route path="/properties/:id/edit" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
             <Route path="/properties/types" element={<ProtectedRoute><PropertyTypes /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/add" element={<ProtectedRoute><AddClient /></ProtectedRoute>} />

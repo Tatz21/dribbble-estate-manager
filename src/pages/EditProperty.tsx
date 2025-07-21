@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,19 +7,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Upload, Plus, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { usePropertyTypes, useCreateProperty, useProfile } from '@/hooks/useSupabaseQuery';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePropertyTypes } from '@/hooks/useSupabaseQuery';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export default function AddProperty() {
+export default function EditProperty() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { data: profile } = useProfile();
+  const queryClient = useQueryClient();
   const { data: propertyTypes = [] } = usePropertyTypes();
-  const createProperty = useCreateProperty();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -33,12 +32,64 @@ export default function AddProperty() {
     square_feet: '',
     description: '',
     features: [],
-    images: []
+    images: [],
+    status: 'available'
   });
 
   const [featureInput, setFeatureInput] = useState('');
   const [imageFiles, setImageFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  const { data: property, isLoading } = useQuery({
+    queryKey: ['property', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const updateProperty = useMutation({
+    mutationFn: async (propertyData: any) => {
+      const { error } = await supabase
+        .from('properties')
+        .update(propertyData)
+        .eq('id', id);
+      
+      if (error) throw error;
+      return propertyData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['property', id] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    }
+  });
+
+  useEffect(() => {
+    if (property) {
+      setFormData({
+        title: property.title || '',
+        property_type_id: property.property_type_id || '',
+        price: property.price?.toString() || '',
+        address: property.address || '',
+        city: property.city || '',
+        state: property.state || '',
+        zip_code: property.zip_code || '',
+        bedrooms: property.bedrooms?.toString() || '',
+        bathrooms: property.bathrooms?.toString() || '',
+        square_feet: property.square_feet?.toString() || '',
+        description: property.description || '',
+        features: property.features || [],
+        images: property.images || [],
+        status: property.status || 'available'
+      });
+    }
+  }, [property]);
 
   const uploadImages = async (files) => {
     if (!files.length) return [];
@@ -68,18 +119,11 @@ export default function AddProperty() {
     e.preventDefault();
     setUploading(true);
     
-    if (!profile) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to add a property.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     try {
-      // Upload images first
-      const uploadedImageUrls = await uploadImages(imageFiles);
+      // Upload new images if any
+      const newImageUrls = await uploadImages(imageFiles);
+      const allImages = [...formData.images, ...newImageUrls];
+      
       const propertyData = {
         title: formData.title,
         property_type_id: formData.property_type_id,
@@ -93,24 +137,23 @@ export default function AddProperty() {
         square_feet: formData.square_feet ? parseFloat(formData.square_feet) : null,
         description: formData.description,
         features: formData.features,
-        images: uploadedImageUrls,
-        agent_id: profile.id,
-        status: 'available'
+        images: allImages,
+        status: formData.status
       };
 
-      await createProperty.mutateAsync(propertyData);
+      await updateProperty.mutateAsync(propertyData);
       
       toast({
-        title: "Property added successfully",
-        description: "The property has been added to your listings.",
+        title: "Property updated successfully",
+        description: "The property has been updated.",
       });
       
-      navigate('/properties');
+      navigate(`/properties/${id}`);
     } catch (error) {
-      console.error('Error adding property:', error);
+      console.error('Error updating property:', error);
       toast({
         title: "Error",
-        description: "Failed to add property. Please try again.",
+        description: "Failed to update property. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -137,7 +180,6 @@ export default function AddProperty() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    console.log('Files selected:', files.length);
     
     if (files.length === 0) return;
     
@@ -163,41 +205,65 @@ export default function AddProperty() {
       return;
     }
     
-    console.log('Adding files to state:', validFiles.length);
-    setImageFiles(prev => {
-      const newFiles = [...prev, ...validFiles];
-      console.log('Total files after update:', newFiles.length);
-      return newFiles;
-    });
-    
-    // Clear the input value so the same file can be selected again if needed
+    setImageFiles(prev => [...prev, ...validFiles]);
     e.target.value = '';
   };
 
-  const removeImage = (index: number) => {
-    console.log('Removing image at index:', index);
-    setImageFiles(prev => {
-      const newFiles = prev.filter((_, i) => i !== index);
-      console.log('Files after removal:', newFiles.length);
-      return newFiles;
-    });
+  const removeNewImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
   };
+
+  const removeExistingImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!property) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Property Not Found</h2>
+          <p className="text-muted-foreground mb-6">The property you're looking for doesn't exist.</p>
+          <Link to="/properties">
+            <Button>Back to Properties</Button>
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Link to="/properties">
+          <Link to={`/properties/${id}`}>
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Properties
+              Back to Property
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Add New Property</h1>
+            <h1 className="text-3xl font-bold text-foreground">Edit Property</h1>
             <p className="text-muted-foreground mt-1">
-              Create a new property listing
+              Update property information
             </p>
           </div>
         </div>
@@ -246,6 +312,20 @@ export default function AddProperty() {
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
                     required
                   />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  >
+                    <option value="available">Available</option>
+                    <option value="sold">Sold</option>
+                    <option value="rented">Rented</option>
+                    <option value="pending">Pending</option>
+                  </select>
                 </div>
               </div>
               
@@ -315,6 +395,7 @@ export default function AddProperty() {
                   <Input
                     id="bathrooms"
                     type="number"
+                    step="0.5"
                     placeholder="0"
                     value={formData.bathrooms}
                     onChange={(e) => setFormData({...formData, bathrooms: e.target.value})}
@@ -386,13 +467,39 @@ export default function AddProperty() {
               <CardTitle>Property Images</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Existing Images */}
+              {formData.images.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Current Images</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {formData.images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Current ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upload New Images */}
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
                 <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground mb-2">
-                  Choose images to upload (Max 5MB each)
+                  Add more images (Max 5MB each)
                 </p>
                 <p className="text-xs text-muted-foreground mb-4">
-                  Selected: {imageFiles.length} files
+                  Selected: {imageFiles.length} new files
                 </p>
                 <input
                   type="file"
@@ -410,23 +517,26 @@ export default function AddProperty() {
               </div>
               
               {imageFiles.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {imageFiles.map((file, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Preview ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
+                <div>
+                  <h4 className="font-medium mb-2">New Images to Upload</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {imageFiles.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`New ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(index)}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -434,13 +544,13 @@ export default function AddProperty() {
 
           {/* Submit */}
           <div className="flex gap-4 justify-end">
-            <Link to="/properties">
+            <Link to={`/properties/${id}`}>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </Link>
             <Button type="submit" className="btn-gradient" disabled={uploading}>
-              {uploading ? 'Adding Property...' : 'Add Property'}
+              {uploading ? 'Updating Property...' : 'Update Property'}
             </Button>
           </div>
         </form>
