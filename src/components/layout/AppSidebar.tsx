@@ -95,13 +95,9 @@ const menuItems = [
     icon: FileText
   },
   {
-    title: "Billing",
-    icon: CreditCard,
-    items: [
-      { title: "Invoices", url: "/billing/invoices" },
-      { title: "Commission", url: "/billing/commission" },
-      { title: "Payments", url: "/billing/payments" }
-    ]
+    title: "Invoices",
+    url: "/invoices",
+    icon: CreditCard
   },
   {
     title: "Analytics",
