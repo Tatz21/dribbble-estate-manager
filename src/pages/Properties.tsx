@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, Filter, MapPin, Bed, Bath, Square, Eye, Edit, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useProperties, usePropertyTypes } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Properties() {
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  
+  // Handle URL search parameter
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchTerm(urlSearch);
+    }
+  }, [searchParams]);
   const { data: properties = [], isLoading } = useProperties();
   const { data: propertyTypes = [] } = usePropertyTypes();
   const { toast } = useToast();

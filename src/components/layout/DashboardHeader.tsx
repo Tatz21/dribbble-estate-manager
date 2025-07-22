@@ -188,7 +188,7 @@ export function DashboardHeader() {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && searchQuery.trim()) {
-                navigate(`/properties?search=${encodeURIComponent(searchQuery)}`);
+                navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
               }
             }}
           />
