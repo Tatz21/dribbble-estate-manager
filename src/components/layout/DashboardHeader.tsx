@@ -23,6 +23,7 @@ import { formatDistanceToNow } from "date-fns";
 export function DashboardHeader() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
   const [unreadNotifications, setUnreadNotifications] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const { logout } = useAuth();
   const { data: profile } = useProfile();
   const navigate = useNavigate();
@@ -183,6 +184,13 @@ export function DashboardHeader() {
           <Input
             placeholder="Search properties, clients, or agents..."
             className="pl-10 w-80 bg-background"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                navigate(`/properties?search=${encodeURIComponent(searchQuery)}`);
+              }
+            }}
           />
         </div>
       </div>

@@ -27,6 +27,7 @@ import AddAgent from "./pages/AddAgent";
 import AgentPerformance from "./pages/AgentPerformance";
 import ViewAgent from "./pages/ViewAgent";
 import EditAgent from "./pages/EditAgent";
+import ViewLead from "./pages/ViewLead";
 
 import Documents from "./pages/Documents";
 import Billing from "./pages/Billing";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/meetings/edit/:id" element={<ProtectedRoute><EditMeeting /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/leads/add" element={<ProtectedRoute><AddLead /></ProtectedRoute>} />
+            <Route path="/leads/:id" element={<ProtectedRoute><ViewLead /></ProtectedRoute>} />
             <Route path="/leads/pipeline" element={<ProtectedRoute><LeadsPipeline /></ProtectedRoute>} />
             <Route path="/leads/sources" element={<ProtectedRoute><LeadSources /></ProtectedRoute>} />
             <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
