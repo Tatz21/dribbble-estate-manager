@@ -1,20 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.52.0";
-import { Resend } from "npm:resend@2.0.0";
-
-const resend = new Resend("re_dZDj9sfd_KYRJvoVJN37DVqreZWQdNvTi");
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-interface SendEmailRequest {
+interface EmailRequest {
   clientId: string;
+  templateId?: string;
   subject: string;
   content: string;
-  templateId?: string;
-  communicationType: 'email' | 'followup' | 'reminder';
+  type: 'email' | 'automated_email';
+  metadata?: Record<string, any>;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -23,99 +22,91 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
 
-    const { clientId, subject, content, templateId, communicationType }: SendEmailRequest = await req.json();
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing Supabase configuration');
+    }
 
-    // Get client information
-    const { data: client, error: clientError } = await supabaseClient
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { clientId, subject, content, type, metadata = {} }: EmailRequest = await req.json();
+
+    // Get client details
+    const { data: client, error: clientError } = await supabase
       .from('clients')
-      .select('full_name, email, agent_id')
+      .select('*, agent:agent_id(id, full_name, email, phone)')
       .eq('id', clientId)
       .single();
 
-    if (clientError || !client) {
-      throw new Error('Client not found');
+    if (clientError || !client || !client.email) {
+      throw new Error('Client not found or email not available');
     }
 
-    // Get agent information
-    const { data: agent, error: agentError } = await supabaseClient
-      .from('profiles')
-      .select('full_name, email')
-      .eq('id', client.agent_id)
-      .single();
-
-    if (agentError || !agent) {
-      throw new Error('Agent not found');
-    }
-
-    // Send email using Resend
-    const emailResponse = await resend.emails.send({
-      from: `${agent.full_name} <onboarding@resend.dev>`,
-      to: [client.email],
-      subject: subject,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Hello ${client.full_name},</h2>
-          <div style="line-height: 1.6; color: #555;">
-            ${content}
-          </div>
-          <br>
-          <p style="color: #666;">
-            Best regards,<br>
-            ${agent.full_name}<br>
-            Your Real Estate Agent
-          </p>
-        </div>
-      `,
-    });
-
-    if (emailResponse.error) {
-      throw new Error(emailResponse.error.message);
-    }
-
-    // Log communication in database
-    const { error: logError } = await supabaseClient
+    // Save communication record
+    const { data: communication, error: commError } = await supabase
       .from('communications')
       .insert({
         client_id: clientId,
-        agent_id: client.agent_id,
-        type: communicationType,
+        agent_id: client.agent?.id,
+        type: type,
         subject: subject,
         content: content,
-        method: 'email',
-        status: 'sent',
-        template_id: templateId,
-        external_id: emailResponse.data?.id
-      });
+        status: resendApiKey ? 'pending' : 'sent',
+        metadata: metadata
+      })
+      .select()
+      .single();
 
-    if (logError) {
-      console.error('Failed to log communication:', logError);
+    if (commError) throw new Error('Failed to save communication record');
+
+    let emailSent = true;
+
+    // Send email if configured
+    if (resendApiKey && client.email) {
+      try {
+        const emailResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: `${client.agent?.full_name || 'Agent'} <noreply@resend.dev>`,
+            to: [client.email],
+            subject: subject,
+            html: content.replace(/\n/g, '<br>')
+          }),
+        });
+
+        emailSent = emailResponse.ok;
+        
+        await supabase
+          .from('communications')
+          .update({ 
+            status: emailSent ? 'sent' : 'failed',
+            sent_at: new Date().toISOString()
+          })
+          .eq('id', communication.id);
+      } catch (error) {
+        emailSent = false;
+      }
     }
 
-    console.log("Email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      emailId: emailResponse.data?.id 
+    return new Response(JSON.stringify({
+      success: emailSent,
+      communicationId: communication.id,
+      message: emailSent ? 'Email sent successfully' : 'Email sending failed'
     }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
+
   } catch (error: any) {
-    console.error("Error in send-communication-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
