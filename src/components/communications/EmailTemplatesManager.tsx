@@ -59,7 +59,12 @@ const EmailTemplatesManager = () => {
       if (editingTemplate) {
         const { error } = await supabase
           .from('email_templates')
-          .update(formData)
+          .update({
+            name: formData.name,
+            subject: formData.subject,
+            body: formData.content,
+            template_type: formData.category || 'general'
+          })
           .eq('id', editingTemplate.id);
         
         if (error) throw error;
@@ -70,7 +75,12 @@ const EmailTemplatesManager = () => {
       } else {
         const { error } = await supabase
           .from('email_templates')
-          .insert(formData);
+          .insert({
+            name: formData.name,
+            subject: formData.subject,
+            body: formData.content,
+            template_type: formData.category || 'general'
+          });
         
         if (error) throw error;
         
@@ -127,8 +137,8 @@ const EmailTemplatesManager = () => {
     setFormData({
       name: template.name,
       subject: template.subject,
-      content: template.content,
-      category: template.category || ""
+      content: template.body,
+      category: template.template_type || ""
     });
     setShowCreateDialog(true);
   };
@@ -139,7 +149,7 @@ const EmailTemplatesManager = () => {
   };
 
   const groupedTemplates = templates?.reduce((groups: any, template) => {
-    const category = template.category || 'General';
+    const category = template.template_type || 'General';
     if (!groups[category]) {
       groups[category] = [];
     }
@@ -260,7 +270,7 @@ const EmailTemplatesManager = () => {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {template.content.substring(0, 150)}...
+                    {template.body.substring(0, 150)}...
                   </p>
                 </div>
               ))}

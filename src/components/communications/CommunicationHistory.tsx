@@ -23,8 +23,7 @@ const CommunicationHistory = ({ clientId }: CommunicationHistoryProps) => {
         .from('communications')
         .select(`
           *,
-          agent:profiles(full_name),
-          template:email_templates(name)
+          agent:profiles(full_name)
         `)
         .eq('client_id', clientId)
         .order('created_at', { ascending: false });
@@ -83,7 +82,7 @@ const CommunicationHistory = ({ clientId }: CommunicationHistoryProps) => {
               <div key={comm.id} className="border rounded-lg p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {getMethodIcon(comm.method)}
+                    {getMethodIcon(comm.type)}
                     <span className="font-medium">{comm.subject || comm.type}</span>
                     <Badge className={getStatusColor(comm.status)}>
                       {comm.status}
@@ -98,11 +97,6 @@ const CommunicationHistory = ({ clientId }: CommunicationHistoryProps) => {
                   Agent: {comm.agent?.full_name}
                 </p>
                 
-                {comm.template && (
-                  <p className="text-sm text-muted-foreground">
-                    Template: {comm.template.name}
-                  </p>
-                )}
                 
                 <div className="text-sm">
                   {comm.content.length > 150 
@@ -121,7 +115,7 @@ const CommunicationHistory = ({ clientId }: CommunicationHistoryProps) => {
           </TabsContent>
           
           <TabsContent value="email">
-            {communications?.filter(c => c.method === 'email').map((comm) => (
+            {communications?.filter(c => c.type === 'email').map((comm) => (
               <div key={comm.id} className="border rounded-lg p-4 space-y-2 mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

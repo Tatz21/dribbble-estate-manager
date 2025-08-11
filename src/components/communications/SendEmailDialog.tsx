@@ -67,7 +67,7 @@ export const SendEmailDialog = ({ clientId, open, onOpenChange }: SendEmailDialo
     if (template && client) {
       setSelectedTemplate(templateId);
       setSubject(template.subject.replace('{{client_name}}', client.full_name));
-      setContent(template.content.replace('{{client_name}}', client.full_name));
+      setContent(template.body.replace('{{client_name}}', client.full_name));
     }
   };
 
