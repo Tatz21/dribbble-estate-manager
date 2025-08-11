@@ -524,6 +524,44 @@ export type Database = {
           },
         ]
       }
+      meeting_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string | null
+          reminder_time: string
+          reminder_type: string
+          sent: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          reminder_time: string
+          reminder_type: string
+          sent?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          reminder_time?: string
+          reminder_type?: string
+          sent?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_reminders_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           agent_id: string | null
@@ -531,11 +569,15 @@ export type Database = {
           created_at: string
           description: string | null
           duration_minutes: number | null
+          follow_up_required: boolean | null
           id: string
           location: string | null
           meeting_date: string
+          meeting_notes: string | null
           meeting_type: string | null
+          next_follow_up_date: string | null
           notes: string | null
+          outcome: string | null
           property_id: string | null
           status: string | null
           title: string
@@ -547,11 +589,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
+          follow_up_required?: boolean | null
           id?: string
           location?: string | null
           meeting_date: string
+          meeting_notes?: string | null
           meeting_type?: string | null
+          next_follow_up_date?: string | null
           notes?: string | null
+          outcome?: string | null
           property_id?: string | null
           status?: string | null
           title: string
@@ -563,11 +609,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
+          follow_up_required?: boolean | null
           id?: string
           location?: string | null
           meeting_date?: string
+          meeting_notes?: string | null
           meeting_type?: string | null
+          next_follow_up_date?: string | null
           notes?: string | null
+          outcome?: string | null
           property_id?: string | null
           status?: string | null
           title?: string

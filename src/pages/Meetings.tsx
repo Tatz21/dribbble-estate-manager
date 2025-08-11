@@ -4,17 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, Calendar, Clock, MapPin, User, Phone, Video, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Calendar, Clock, MapPin, User, Phone, Video, Edit, Trash2, Eye, FileText, Bell, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMeetings } from '@/hooks/useSupabaseQuery';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CalendarView } from '@/components/CalendarView';
+import { MeetingNotesDialog } from '@/components/meetings/MeetingNotesDialog';
+import { RescheduleMeetingDialog } from '@/components/meetings/RescheduleMeetingDialog';
+import { MeetingRemindersDialog } from '@/components/meetings/MeetingRemindersDialog';
 
 export default function Meetings() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+  const [showRemindersDialog, setShowRemindersDialog] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string>('');
+  const [selectedMeetingDate, setSelectedMeetingDate] = useState<string>('');
   const { data: meetings = [], isLoading, refetch } = useMeetings();
   const { toast } = useToast();
   const handleDeleteMeeting = async (meetingId: string) => {
@@ -233,6 +241,43 @@ export default function Meetings() {
                           <Button 
                             size="sm" 
                             variant="outline"
+                            onClick={() => {
+                              setSelectedMeetingId(meeting.id);
+                              setShowNotesDialog(true);
+                            }}
+                            title="Add Notes"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedMeetingId(meeting.id);
+                              setSelectedMeetingDate(meeting.meeting_date);
+                              setShowRemindersDialog(true);
+                            }}
+                            title="Set Reminders"
+                          >
+                            <Bell className="h-4 w-4" />
+                          </Button>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedMeetingId(meeting.id);
+                              setShowRescheduleDialog(true);
+                            }}
+                            title="Reschedule"
+                          >
+                            <CalendarDays className="h-4 w-4" />
+                          </Button>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline"
                             onClick={() => handleStatusUpdate(meeting.id, 
                               meeting.status === 'scheduled' ? 'confirmed' : 
                               meeting.status === 'confirmed' ? 'completed' : 'scheduled'
@@ -283,6 +328,31 @@ export default function Meetings() {
             onClose={() => setShowCalendar(false)} 
           />
         )}
+
+        {/* Meeting Notes Dialog */}
+        <MeetingNotesDialog
+          meetingId={selectedMeetingId}
+          open={showNotesDialog}
+          onOpenChange={setShowNotesDialog}
+          onSave={() => refetch()}
+        />
+
+        {/* Reschedule Meeting Dialog */}
+        <RescheduleMeetingDialog
+          meetingId={selectedMeetingId}
+          open={showRescheduleDialog}
+          onOpenChange={setShowRescheduleDialog}
+          onReschedule={() => refetch()}
+        />
+
+        {/* Meeting Reminders Dialog */}
+        <MeetingRemindersDialog
+          meetingId={selectedMeetingId}
+          meetingDate={selectedMeetingDate}
+          open={showRemindersDialog}
+          onOpenChange={setShowRemindersDialog}
+          onSave={() => refetch()}
+        />
       </div>
     </DashboardLayout>
   );
