@@ -66,7 +66,7 @@ export function useMeetings() {
         .from('meetings')
         .select(`
           *,
-          agent:agents(*),
+          agent:profiles(*),
           client:clients(*),
           property:properties(*)
         `)
@@ -204,9 +204,19 @@ export function useCreateMeeting() {
   
   return useMutation({
     mutationFn: async (meeting: any) => {
+      // Get current user's profile ID for agent_id
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
       const { data, error } = await supabase
         .from('meetings')
-        .insert([meeting])
+        .insert([{
+          ...meeting,
+          agent_id: meeting.agent_id || profile?.id // Use provided agent_id or current user's profile_id
+        }])
         .select()
         .single();
       
@@ -220,13 +230,13 @@ export function useCreateMeeting() {
   });
 }
 
-// Agents queries
+// Agents queries - Use profiles table instead of agents
 export function useAgents() {
   return useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('agents')
+        .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -244,10 +254,9 @@ export function useAgentPerformance(agentId?: string) {
         .from('agent_performance')
         .select(`
           *,
-          agents (
+          profiles!agent_id (
             full_name,
-            role,
-            specialization
+            role
           )
         `)
         .order('month', { ascending: false });
@@ -270,7 +279,7 @@ export function useAgentWithPerformance() {
     queryKey: ['agents-with-performance'],
     queryFn: async () => {
       const { data: agents, error: agentsError } = await supabase
-        .from('agents')
+        .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -339,7 +348,7 @@ export function useCreateAgent() {
   return useMutation({
     mutationFn: async (agent: any) => {
       const { data, error } = await supabase
-        .from('agents')
+        .from('profiles')
         .insert([agent])
         .select()
         .single();

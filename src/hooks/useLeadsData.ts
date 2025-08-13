@@ -18,7 +18,7 @@ export function useLeadsWithDetails() {
       const propertyIds = leadsData?.filter(l => l.property_id).map(l => l.property_id) || [];
       
       const [agentsRes, propertiesRes] = await Promise.all([
-        agentIds.length > 0 ? supabase.from('agents').select('id, full_name').in('id', agentIds) : Promise.resolve({ data: [] }),
+        agentIds.length > 0 ? supabase.from('profiles').select('id, full_name').in('id', agentIds) : Promise.resolve({ data: [] }),
         propertyIds.length > 0 ? supabase.from('properties').select('id, title, address, city, state, price').in('id', propertyIds) : Promise.resolve({ data: [] })
       ]);
 
@@ -51,7 +51,7 @@ export function useLeadsPipeline() {
       const propertyIds = leadsData?.filter(l => l.property_id).map(l => l.property_id) || [];
       
       const [agentsRes, propertiesRes] = await Promise.all([
-        agentIds.length > 0 ? supabase.from('agents').select('id, full_name').in('id', agentIds) : Promise.resolve({ data: [] }),
+        agentIds.length > 0 ? supabase.from('profiles').select('id, full_name').in('id', agentIds) : Promise.resolve({ data: [] }),
         propertyIds.length > 0 ? supabase.from('properties').select('id, title, price').in('id', propertyIds) : Promise.resolve({ data: [] })
       ]);
 

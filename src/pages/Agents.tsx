@@ -20,7 +20,7 @@ export default function Agents() {
   const handleDeleteAgent = async (agentId: string) => {
     try {
       const { error } = await supabase
-        .from('agents')
+        .from('profiles')
         .delete()
         .eq('id', agentId);
 
@@ -153,14 +153,8 @@ export default function Agents() {
                         <p className="text-sm text-muted-foreground">{agent.role}</p>
                       </div>
                     </div>
-                    <Badge 
-                      className={`${
-                        agent.status === 'active' ? 'bg-success' : 
-                        agent.status === 'on_leave' ? 'bg-warning' : 'bg-muted'
-                      }`}
-                    >
-                      {agent.status === 'active' ? 'Active' : 
-                       agent.status === 'on_leave' ? 'On Leave' : 'Inactive'}
+                    <Badge className="bg-success">
+                      Active
                     </Badge>
                   </div>
                 </CardHeader>
@@ -180,27 +174,21 @@ export default function Agents() {
                       </div>
                     )}
                     
-                    {agent.specialization && agent.specialization.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {agent.specialization.map((spec) => (
-                          <Badge key={spec} variant="secondary" className="text-xs">
-                            {spec}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      <Badge variant="secondary" className="text-xs">
+                        {agent.role}
+                      </Badge>
+                    </div>
                     
-                    {agent.experience && (
-                      <div className="bg-muted/50 rounded-lg p-3 mt-4">
-                        <div className="text-sm">
-                          <div className="flex items-center gap-1">
-                            <Trophy className="h-3 w-3 text-primary" />
-                            <span className="text-muted-foreground">Experience:</span>
-                            <span className="font-semibold">{agent.experience} years</span>
-                          </div>
+                    <div className="bg-muted/50 rounded-lg p-3 mt-4">
+                      <div className="text-sm">
+                        <div className="flex items-center gap-1">
+                          <Trophy className="h-3 w-3 text-primary" />
+                          <span className="text-muted-foreground">Role:</span>
+                          <span className="font-semibold">{agent.role}</span>
                         </div>
                       </div>
-                    )}
+                    </div>
                     
                     <div className="flex gap-2 mt-4">
                       <Link to={`/agents/view/${agent.id}`} className="flex-1">

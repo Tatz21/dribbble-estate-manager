@@ -19,17 +19,17 @@ export function RecentActivity() {
       const [propertiesRes, clientsRes, meetingsRes] = await Promise.all([
         supabase
           .from('properties')
-          .select('*, agent:agents(*)')
+          .select('*, agent:profiles(*)')
           .order('created_at', { ascending: false })
           .limit(3),
         supabase
           .from('clients')
-          .select('*, agent:agents(*)')
+          .select('*, agent:profiles(*)')
           .order('created_at', { ascending: false })
           .limit(3),
         supabase
           .from('meetings')
-          .select('*, agent:agents(*)')
+          .select('*, agent:profiles(*)')
           .order('created_at', { ascending: false })
           .limit(3)
       ]);

@@ -39,19 +39,19 @@ export function DashboardHeader() {
       const [propertiesRes, clientsRes, meetingsRes, leadsRes, invoicesRes] = await Promise.all([
         supabase
           .from('properties')
-          .select('*, agent:agents(full_name)')
+          .select('*, agent:profiles(full_name)')
           .gte('created_at', oneWeekAgo.toISOString())
           .order('created_at', { ascending: false })
           .limit(3),
         supabase
           .from('clients')
-          .select('*, agent:agents(full_name)')
+          .select('*, agent:profiles(full_name)')
           .gte('created_at', oneWeekAgo.toISOString())
           .order('created_at', { ascending: false })
           .limit(3),
         supabase
           .from('meetings')
-          .select('*, agent:agents(full_name)')
+          .select('*, agent:profiles(full_name)')
           .gte('created_at', oneWeekAgo.toISOString())
           .order('created_at', { ascending: false })
           .limit(3),

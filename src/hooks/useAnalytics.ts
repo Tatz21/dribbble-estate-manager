@@ -11,7 +11,7 @@ export function useAnalytics() {
         supabase.from('clients').select('*', { count: 'exact', head: true }),
         supabase.from('leads').select('*', { count: 'exact', head: true }),
         supabase.from('meetings').select('*', { count: 'exact', head: true }),
-        supabase.from('agents').select('*', { count: 'exact', head: true })
+        supabase.from('profiles').select('*', { count: 'exact', head: true })
       ]);
 
       // Get properties with types and prices for analysis
@@ -27,7 +27,7 @@ export function useAnalytics() {
         .from('agent_performance')
         .select(`
           *,
-          agents(full_name)
+          profiles!agent_id(full_name)
         `)
         .order('total_revenue', { ascending: false });
 
@@ -43,7 +43,7 @@ export function useAnalytics() {
 
       // Top performers
       const topPerformers = agentPerformance?.slice(0, 5).map(ap => ({
-        name: ap.agents?.full_name || 'Unknown Agent',
+        name: (ap as any).profiles?.full_name || 'Unknown Agent',
         deals: ap.deals_completed || 0,
         revenue: `₹${((ap.total_revenue || 0) / 10000000).toFixed(1)} Cr`,
         growth: `+${((ap.conversion_rate || 0) / 10).toFixed(1)}%`

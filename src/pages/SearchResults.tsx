@@ -244,11 +244,9 @@ export default function SearchResults() {
                             {agent.phone}
                           </div>
                         )}
-                        {agent.experience && (
-                          <div className="text-sm text-muted-foreground">
-                            Experience: {agent.experience} years
-                          </div>
-                        )}
+                        <div className="text-sm text-muted-foreground">
+                          Role: {agent.role}
+                        </div>
                         <Link to={`/agents/${agent.id}`}>
                           <Button variant="outline" size="sm" className="w-full mt-2">
                             <Eye className="h-3 w-3 mr-1" />

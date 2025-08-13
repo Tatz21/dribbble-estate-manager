@@ -225,7 +225,7 @@ export default function Meetings() {
                         <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                           <span>Agent:</span>
                           <span className="font-medium">
-                            {meeting.agent?.full_name || 'No agent assigned'}
+                            {(meeting.agent as any)?.full_name || 'No agent assigned'}
                           </span>
                         </div>
 
@@ -324,7 +324,7 @@ export default function Meetings() {
         {/* Calendar View Modal */}
         {showCalendar && (
           <CalendarView 
-            meetings={meetings} 
+            meetings={meetings as any} 
             onClose={() => setShowCalendar(false)} 
           />
         )}

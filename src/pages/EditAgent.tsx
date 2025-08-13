@@ -39,7 +39,7 @@ export default function EditAgent() {
   const fetchAgent = async () => {
     try {
       const { data, error } = await supabase
-        .from('agents')
+        .from('profiles')
         .select('*')
         .eq('id', id)
         .single();
@@ -51,13 +51,13 @@ export default function EditAgent() {
         full_name: data.full_name || '',
         email: data.email || '',
         phone: data.phone || '',
-        role: data.role || '',
-        experience: data.experience?.toString() || '',
-        specialization: data.specialization || [],
-        qualifications: data.qualifications || '',
-        address: data.address || '',
-        notes: data.notes || '',
-        status: data.status || 'active'
+        role: data.role || 'agent',
+        experience: '',
+        specialization: [],
+        qualifications: '',
+        address: '',
+        notes: '',
+        status: 'active'
       });
     } catch (error) {
       console.error('Error fetching agent:', error);
@@ -75,18 +75,12 @@ export default function EditAgent() {
 
     try {
       const { error } = await supabase
-        .from('agents')
+        .from('profiles')
         .update({
           full_name: formData.full_name,
           email: formData.email,
           phone: formData.phone,
           role: formData.role,
-          experience: formData.experience ? parseInt(formData.experience) : null,
-          specialization: formData.specialization,
-          qualifications: formData.qualifications,
-          address: formData.address,
-          notes: formData.notes,
-          status: formData.status,
           updated_at: new Date().toISOString()
         })
         .eq('id', id);

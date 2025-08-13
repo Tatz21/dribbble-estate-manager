@@ -24,7 +24,7 @@ export default function ViewAgent() {
   const fetchAgent = async () => {
     try {
       const { data, error } = await supabase
-        .from('agents')
+        .from('profiles')
         .select('*')
         .eq('id', id)
         .single();
