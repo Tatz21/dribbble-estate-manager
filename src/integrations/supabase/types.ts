@@ -804,6 +804,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_current_user_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_agent_for_client: {
+        Args: { client_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
