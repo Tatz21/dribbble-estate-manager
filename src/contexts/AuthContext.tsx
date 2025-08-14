@@ -26,6 +26,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        }
+        if (event === 'SIGNED_OUT') {
+          // Clear localStorage on sign out
+          localStorage.clear();
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
@@ -33,9 +40,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session error:', error);
+        // Clear corrupted session data
+        localStorage.clear();
+        setSession(null);
+        setUser(null);
+      } else {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
       setIsLoading(false);
     });
 
