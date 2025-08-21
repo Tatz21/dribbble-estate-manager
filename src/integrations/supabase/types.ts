@@ -628,21 +628,7 @@ export type Database = {
             foreignKeyName: "meetings_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meetings_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meetings_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
