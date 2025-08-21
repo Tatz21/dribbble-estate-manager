@@ -340,12 +340,6 @@ export default function Login() {
               </form>
             </TabsContent>
           </Tabs>
-          
-          <div className="mt-6 p-3 bg-muted rounded-lg">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Demo Account:</p>
-            <p className="text-xs text-muted-foreground">Email: demo@realestate.com</p>
-            <p className="text-xs text-muted-foreground">Password: demo123</p>
-          </div>
         </CardContent>
       </Card>
     </div>
