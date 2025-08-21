@@ -523,7 +523,7 @@ export default function Billing() {
                 <option value="cancelled">Cancelled</option>
               </select>
               
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => toast({ title: "Coming Soon", description: "Advanced filters will be available soon." })}>
                 <Filter className="h-4 w-4 mr-2" />
                 More Filters
               </Button>

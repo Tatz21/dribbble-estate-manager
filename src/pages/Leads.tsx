@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, Filter, Phone, Mail, User, Calendar, TrendingUp, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLeadsWithDetails, useUpdateLeadStatus } from '@/hooks/useLeadsData';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 const stages = ["new", "contacted", "qualified", "negotiation", "closed"];
@@ -18,6 +19,7 @@ export default function Leads() {
 
   const { data: leads = [], isLoading, error } = useLeadsWithDetails();
   const updateLeadStatus = useUpdateLeadStatus();
+  const { toast } = useToast();
 
   if (isLoading) {
     return (
@@ -136,7 +138,7 @@ export default function Leads() {
                 <option value="cold_call">Cold Call</option>
               </select>
               
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => toast({ title: "Coming Soon", description: "Advanced filters will be available soon." })}>
                 <Filter className="h-4 w-4 mr-2" />
                 More Filters
               </Button>

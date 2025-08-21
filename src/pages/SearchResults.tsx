@@ -197,7 +197,7 @@ export default function SearchResults() {
                             Budget: ₹{client.budget_min.toLocaleString()} - ₹{client.budget_max.toLocaleString()}
                           </div>
                         )}
-                        <Link to={`/clients/${client.id}`}>
+                        <Link to={`/clients/edit/${client.id}`}>
                           <Button variant="outline" size="sm" className="w-full mt-2">
                             <Eye className="h-3 w-3 mr-1" />
                             View Client
@@ -247,7 +247,7 @@ export default function SearchResults() {
                         <div className="text-sm text-muted-foreground">
                           Role: {agent.role}
                         </div>
-                        <Link to={`/agents/${agent.id}`}>
+                        <Link to={`/agents/view/${agent.id}`}>
                           <Button variant="outline" size="sm" className="w-full mt-2">
                             <Eye className="h-3 w-3 mr-1" />
                             View Agent
