@@ -129,12 +129,14 @@ export function AppSidebar() {
     <Sidebar className="border-sidebar-border/50">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary rounded-xl">
-            <Building2 className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <img 
+            src="/lovable-uploads/303ca945-6675-43db-9881-c7198ce3cd29.png" 
+            alt="ESTATORA Logo" 
+            className="h-10 w-auto"
+          />
           {state === "expanded" && (
             <div>
-              <h2 className="text-lg font-semibold text-sidebar-foreground">RealEstate Pro</h2>
+              <h2 className="text-lg font-semibold text-sidebar-foreground">ESTATORA</h2>
               <p className="text-xs text-sidebar-foreground/60">Property Management</p>
             </div>
           )}

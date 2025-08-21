@@ -27,7 +27,7 @@ const Index = () => {
               Welcome back! 👋
             </h1>
             <p className="text-muted-foreground mt-1">
-              Here's what's happening with your real estate business today.
+              Here's what's happening with your ESTATORA business today.
             </p>
           </div>
           
