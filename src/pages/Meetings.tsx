@@ -31,6 +31,14 @@ export default function Meetings() {
   useEffect(() => {
     refetch();
   }, [refetch]);
+
+  // Debug: Log meetings data to see what's being fetched
+  useEffect(() => {
+    console.log("Meetings data:", meetings);
+    if (meetings.length > 0) {
+      console.log("First meeting sample:", meetings[0]);
+    }
+  }, [meetings]);
   const handleDeleteMeeting = async (meetingId: string) => {
     try {
       const { error } = await supabase

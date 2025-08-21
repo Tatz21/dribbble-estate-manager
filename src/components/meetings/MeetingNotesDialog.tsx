@@ -71,6 +71,8 @@ export const MeetingNotesDialog = ({
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      console.log("Saving meeting notes:", { meetingId, notes, outcome, followUpRequired, nextFollowUpDate });
+      
       const { error } = await supabase
         .from('meetings')
         .update({
@@ -84,7 +86,12 @@ export const MeetingNotesDialog = ({
         })
         .eq('id', meetingId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Save error:", error);
+        throw error;
+      }
+
+      console.log("Meeting notes saved successfully");
 
       toast({
         title: "Notes saved successfully",
