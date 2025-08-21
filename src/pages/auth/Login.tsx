@@ -189,9 +189,9 @@ export default function Login() {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="/lovable-uploads/303ca945-6675-43db-9881-c7198ce3cd29.png" 
+              src="/lovable-uploads/cd6110d9-20c8-49ef-960f-dd8e0cb02089.png" 
               alt="ESTATORA Logo" 
-              className="h-20 w-auto"
+              className="h-40 w-auto"
             />
           </div>
         </CardHeader>
