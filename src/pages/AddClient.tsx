@@ -34,6 +34,13 @@ const AddClient = () => {
   const [locationInput, setLocationInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validateBudget = (value: string): boolean => {
+    if (!value) return true; // Empty is allowed
+    const numValue = parseFloat(value);
+    // Database limit is 10^10 (10 billion), so we limit to 9.99 billion for safety
+    return numValue <= 9999999999;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -44,7 +51,44 @@ const AddClient = () => {
         description: "You must be logged in to add a client.",
         variant: "destructive",
       });
+      setIsSubmitting(false);
       return;
+    }
+
+    // Validate budget values
+    if (formData.budget_min && !validateBudget(formData.budget_min)) {
+      toast({
+        title: "Invalid Budget",
+        description: "Minimum budget cannot exceed ₹999 crores (9.99 billion).",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.budget_max && !validateBudget(formData.budget_max)) {
+      toast({
+        title: "Invalid Budget",
+        description: "Maximum budget cannot exceed ₹999 crores (9.99 billion).",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate that min budget is less than max budget
+    if (formData.budget_min && formData.budget_max) {
+      const minBudget = parseFloat(formData.budget_min);
+      const maxBudget = parseFloat(formData.budget_max);
+      if (minBudget > maxBudget) {
+        toast({
+          title: "Invalid Budget Range",
+          description: "Minimum budget cannot be greater than maximum budget.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
     }
     
     try {
@@ -178,7 +222,12 @@ const AddClient = () => {
                     value={formData.budget_min}
                     onChange={(e) => setFormData({...formData, budget_min: e.target.value})}
                     placeholder="5000000"
+                    max="9999999999"
+                    step="1000"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Maximum limit: ₹999 crores (9.99 billion)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="budget_max">Maximum Budget (₹)</Label>
@@ -188,7 +237,12 @@ const AddClient = () => {
                     value={formData.budget_max}
                     onChange={(e) => setFormData({...formData, budget_max: e.target.value})}
                     placeholder="10000000"
+                    max="9999999999"
+                    step="1000"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Maximum limit: ₹999 crores (9.99 billion)
+                  </p>
                 </div>
               </div>
               
