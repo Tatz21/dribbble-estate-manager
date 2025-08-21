@@ -1,3 +1,4 @@
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,21 +60,63 @@ export function useLeads() {
 }
 
 export function useMeetings() {
+  const queryClient = useQueryClient();
+  
+  // Set up real-time subscription for meetings
+  React.useEffect(() => {
+    const channel = supabase
+      .channel('meetings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'meetings'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['meetings'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['meetings'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get meetings without problematic joins first
+      const { data: meetingsData, error: meetingsError } = await supabase
         .from('meetings')
-        .select(`
-          *,
-          agent:profiles(*),
-          client:clients(*),
-          property:properties(*)
-        `)
+        .select('*')
         .order('meeting_date', { ascending: true });
       
-      if (error) throw error;
-      return data;
+      if (meetingsError) throw meetingsError;
+      
+      if (!meetingsData || meetingsData.length === 0) return [];
+      
+      // Get related data separately to avoid relationship issues
+      const agentIds = meetingsData.filter(m => m.agent_id).map(m => m.agent_id);
+      const clientIds = meetingsData.filter(m => m.client_id).map(m => m.client_id);
+      const propertyIds = meetingsData.filter(m => m.property_id).map(m => m.property_id);
+      
+      const [agentsRes, clientsRes, propertiesRes] = await Promise.all([
+        agentIds.length > 0 ? supabase.from('profiles').select('id, full_name, email').in('id', agentIds) : Promise.resolve({ data: [] }),
+        clientIds.length > 0 ? supabase.from('clients').select('id, full_name, email, phone').in('id', clientIds) : Promise.resolve({ data: [] }),
+        propertyIds.length > 0 ? supabase.from('properties').select('id, title, address, city, state').in('id', propertyIds) : Promise.resolve({ data: [] })
+      ]);
+
+      // Manually join the data
+      const enrichedMeetings = meetingsData.map(meeting => ({
+        ...meeting,
+        agent: agentsRes.data?.find(a => a.id === meeting.agent_id) || null,
+        client: clientsRes.data?.find(c => c.id === meeting.client_id) || null,
+        property: propertiesRes.data?.find(p => p.id === meeting.property_id) || null
+      }));
+
+      return enrichedMeetings;
     }
   });
 }
