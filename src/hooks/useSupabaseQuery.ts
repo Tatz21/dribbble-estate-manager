@@ -275,6 +275,30 @@ export function useCreateMeeting() {
 
 // Agents queries - Use profiles table instead of agents
 export function useAgents() {
+  const queryClient = useQueryClient();
+  
+  // Set up real-time subscription for agents
+  React.useEffect(() => {
+    const channel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['agents'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
