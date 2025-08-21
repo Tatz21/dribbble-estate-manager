@@ -10,7 +10,8 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-primary/5"
+        style={{ background: 'linear-gradient(135deg, hsl(var(--background)), hsl(var(--primary) / 0.05), hsl(var(--secondary) / 0.05))' }}>
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">

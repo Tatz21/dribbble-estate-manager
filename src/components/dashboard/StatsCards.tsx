@@ -92,15 +92,20 @@ export function StatsCards() {
       {statsConfig.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card key={index} className="transition-all duration-300 hover:shadow-md">
+          <Card key={index} className="transition-all duration-300 hover:shadow-lg border-primary/20 hover:border-primary/40"
+            style={{ 
+              background: index % 2 === 0 
+                ? 'linear-gradient(135deg, hsl(var(--card)), hsl(var(--primary) / 0.05))' 
+                : 'linear-gradient(135deg, hsl(var(--card)), hsl(var(--secondary) / 0.05))'
+            }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              <Icon className="h-4 w-4 text-muted-foreground" />
+              <Icon className={`h-4 w-4 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold transition-all duration-500">
+              <div className={`text-2xl font-bold transition-all duration-500 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`}>
                 {stat.value}
               </div>
               <div className="flex items-center justify-between">
