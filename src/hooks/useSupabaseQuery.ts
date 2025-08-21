@@ -4,6 +4,30 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function useProperties() {
+  const queryClient = useQueryClient();
+  
+  // Set up real-time subscription for properties
+  React.useEffect(() => {
+    const channel = supabase
+      .channel('properties-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'properties'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['properties'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['properties'],
     queryFn: async () => {
@@ -23,6 +47,30 @@ export function useProperties() {
 }
 
 export function useClients() {
+  const queryClient = useQueryClient();
+  
+  // Set up real-time subscription for clients
+  React.useEffect(() => {
+    const channel = supabase
+      .channel('clients-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'clients'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['clients'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
@@ -41,6 +89,30 @@ export function useClients() {
 }
 
 export function useLeads() {
+  const queryClient = useQueryClient();
+  
+  // Set up real-time subscription for leads
+  React.useEffect(() => {
+    const channel = supabase
+      .channel('leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['leads'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
