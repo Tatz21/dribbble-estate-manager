@@ -132,7 +132,7 @@ export function AppSidebar() {
           <img 
             src="/lovable-uploads/303ca945-6675-43db-9881-c7198ce3cd29.png" 
             alt="ESTATORA Logo" 
-            className="h-12 w-auto"
+            className="h-40 w-auto"
           />
         </div>
       </SidebarHeader>
