@@ -187,10 +187,13 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">RealEstate Pro</CardTitle>
-          <CardDescription>
-            Access your real estate management dashboard
-          </CardDescription>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/lovable-uploads/303ca945-6675-43db-9881-c7198ce3cd29.png" 
+              alt="ESTATORA Logo" 
+              className="h-20 w-auto"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
