@@ -40,14 +40,34 @@ export default function Meetings() {
     }
   }, [meetings]);
   const handleDeleteMeeting = async (meetingId: string) => {
+    console.log("Attempting to delete meeting:", meetingId);
+    
     try {
+      // First check if the meeting exists and we can access it
+      const { data: meetingCheck, error: checkError } = await supabase
+        .from('meetings')
+        .select('id, agent_id, title')
+        .eq('id', meetingId)
+        .single();
+      
+      console.log("Meeting to delete:", meetingCheck);
+      if (checkError) {
+        console.error("Error checking meeting:", checkError);
+        throw checkError;
+      }
+
       const { error } = await supabase
         .from('meetings')
         .delete()
         .eq('id', meetingId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Delete error:", error);
+        throw error;
+      }
 
+      console.log("Meeting deleted successfully");
+      
       toast({
         title: "Meeting deleted",
         description: "The meeting has been successfully removed.",
@@ -58,7 +78,7 @@ export default function Meetings() {
       console.error('Error deleting meeting:', error);
       toast({
         title: "Error",
-        description: "Failed to delete meeting. Please try again.",
+        description: `Failed to delete meeting: ${error.message || 'Please try again.'}`,
         variant: "destructive",
       });
     }
