@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, Calendar, Clock, MapPin, User, Phone, Video, Edit, Trash2, Eye, FileText, Bell, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useMeetings } from '@/hooks/useSupabaseQuery';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +26,11 @@ export default function Meetings() {
   const [selectedMeetingDate, setSelectedMeetingDate] = useState<string>('');
   const { data: meetings = [], isLoading, refetch } = useMeetings();
   const { toast } = useToast();
+
+  // Force refetch when component mounts or becomes visible
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
   const handleDeleteMeeting = async (meetingId: string) => {
     try {
       const { error } = await supabase
@@ -344,7 +350,10 @@ export default function Meetings() {
           meetingId={selectedMeetingId}
           open={showNotesDialog}
           onOpenChange={setShowNotesDialog}
-          onSave={() => refetch()}
+          onSave={() => {
+            refetch();
+            setShowNotesDialog(false);
+          }}
         />
 
         {/* Reschedule Meeting Dialog */}
@@ -352,7 +361,10 @@ export default function Meetings() {
           meetingId={selectedMeetingId}
           open={showRescheduleDialog}
           onOpenChange={setShowRescheduleDialog}
-          onReschedule={() => refetch()}
+          onReschedule={() => {
+            refetch();
+            setShowRescheduleDialog(false);
+          }}
         />
 
         {/* Meeting Reminders Dialog */}
@@ -361,7 +373,10 @@ export default function Meetings() {
           meetingDate={selectedMeetingDate}
           open={showRemindersDialog}
           onOpenChange={setShowRemindersDialog}
-          onSave={() => refetch()}
+          onSave={() => {
+            refetch();
+            setShowRemindersDialog(false);
+          }}
         />
       </div>
     </DashboardLayout>

@@ -92,7 +92,6 @@ export const MeetingNotesDialog = ({
       });
 
       onSave?.();
-      onOpenChange(false);
     } catch (error) {
       console.error('Error saving meeting notes:', error);
       toast({
