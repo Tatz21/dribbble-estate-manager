@@ -240,6 +240,23 @@ export default function Meetings() {
                             <p className="line-clamp-2">{meeting.description}</p>
                           </div>
                         )}
+
+                        {meeting.meeting_notes && (
+                          <div className="mt-2 p-3 bg-muted/30 rounded-md">
+                            <div className="flex items-center gap-2 mb-1">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-medium text-foreground">Meeting Notes</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-3">{meeting.meeting_notes}</p>
+                          </div>
+                        )}
+
+                        {meeting.outcome && (
+                          <div className="mt-2 p-2 bg-primary/10 rounded-md">
+                            <span className="text-sm font-medium text-primary">Outcome: </span>
+                            <span className="text-sm text-foreground capitalize">{meeting.outcome.replace('_', ' ')}</span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-2">
