@@ -128,18 +128,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-sidebar-border/50">
       <SidebarHeader className="p-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center">
           <img 
             src="/lovable-uploads/303ca945-6675-43db-9881-c7198ce3cd29.png" 
             alt="ESTATORA Logo" 
-            className="h-10 w-auto"
+            className="h-12 w-auto"
           />
-          {state === "expanded" && (
-            <div>
-              <h2 className="text-lg font-semibold text-sidebar-foreground">ESTATORA</h2>
-              <p className="text-xs text-sidebar-foreground/60">Property Management</p>
-            </div>
-          )}
         </div>
       </SidebarHeader>
 
