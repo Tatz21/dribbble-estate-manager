@@ -223,12 +223,14 @@ export default function Leads() {
                     </div>
                     
                     <div className="flex flex-col gap-2">
-                      <Button size="sm" className="btn-gradient">
+                      <Button size="sm" className="btn-gradient" onClick={() => window.open(`tel:${lead.phone}`, '_self')}>
                         Contact
                       </Button>
-                      <Button size="sm" variant="outline">
-                        View Details
-                      </Button>
+                      <Link to={`/leads/${lead.id}`}>
+                        <Button size="sm" variant="outline" className="w-full">
+                          View Details
+                        </Button>
+                      </Link>
                       {lead.status !== 'closed' && (
                         <Button 
                           size="sm" 

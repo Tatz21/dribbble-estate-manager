@@ -287,13 +287,23 @@ export default function Meetings() {
                              meeting.status === 'confirmed' ? 'Complete' : 'Reopen'}
                           </Button>
                           
-                          {meeting.meeting_type === 'phone_call' && (
-                            <Button size="sm" variant="outline">
+                          {meeting.meeting_type === 'phone_call' && meeting.client?.phone && (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => window.open(`tel:${meeting.client?.phone}`, '_self')}
+                              title="Call Client"
+                            >
                               <Phone className="h-4 w-4" />
                             </Button>
                           )}
                           {meeting.meeting_type === 'video_call' && (
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => window.open('https://meet.google.com/new', '_blank')}
+                              title="Start Video Call"
+                            >
                               <Video className="h-4 w-4" />
                             </Button>
                           )}

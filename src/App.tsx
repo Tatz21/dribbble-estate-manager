@@ -29,6 +29,7 @@ import ViewAgent from "./pages/ViewAgent";
 import EditAgent from "./pages/EditAgent";
 import ViewLead from "./pages/ViewLead";
 import SearchResults from "./pages/SearchResults";
+import ClientPortal from "./pages/ClientPortal";
 
 import Documents from "./pages/Documents";
 import Billing from "./pages/Billing";
@@ -72,6 +73,7 @@ const App = () => (
             <Route path="/agents/edit/:id" element={<ProtectedRoute><EditAgent /></ProtectedRoute>} />
             <Route path="/agents/performance" element={<ProtectedRoute><AgentPerformance /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
+            <Route path="/client-portal/:clientId" element={<ProtectedRoute><ClientPortal /></ProtectedRoute>} />
             
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
