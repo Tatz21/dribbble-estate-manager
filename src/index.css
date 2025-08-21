@@ -8,8 +8,8 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Real Estate Brand Colors - Modern & Professional */
-    --background: 42 100% 98%;
+    /* ESTATORA Brand Colors - Red & Purple Theme */
+    --background: 0 0% 100%;
     --foreground: 240 10% 15%;
 
     --card: 0 0% 100%;
@@ -18,19 +18,19 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 15%;
 
-    /* Primary - Professional Blue */
-    --primary: 217 91% 60%;
+    /* Primary - ESTATORA Red */
+    --primary: 0 100% 50%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Warm Accent */
-    --secondary: 43 74% 66%;
-    --secondary-foreground: 240 10% 15%;
+    /* Secondary - ESTATORA Purple */
+    --secondary: 258 100% 60%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Muted backgrounds */
-    --muted: 42 52% 96%;
+    --muted: 0 20% 96%;
     --muted-foreground: 240 5% 45%;
 
-    --accent: 42 52% 96%;
+    --accent: 258 20% 96%;
     --accent-foreground: 240 10% 15%;
 
     /* Success & Error */
@@ -40,29 +40,29 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 42 20% 85%;
-    --input: 42 20% 90%;
-    --ring: 217 91% 60%;
+    --border: 0 20% 90%;
+    --input: 0 20% 94%;
+    --ring: 0 100% 50%;
 
     --radius: 0.75rem;
 
     /* Sidebar styling */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 10% 15%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 0 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 42 52% 92%;
+    --sidebar-accent: 0 20% 94%;
     --sidebar-accent-foreground: 240 10% 15%;
-    --sidebar-border: 42 20% 82%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-border: 0 20% 88%;
+    --sidebar-ring: 0 100% 50%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
-    --gradient-secondary: linear-gradient(135deg, hsl(43 74% 66%), hsl(43 74% 76%));
-    --gradient-background: linear-gradient(135deg, hsl(42 100% 98%), hsl(42 52% 96%));
+    --gradient-primary: linear-gradient(135deg, hsl(0 100% 50%), hsl(258 100% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(258 100% 60%), hsl(258 100% 70%));
+    --gradient-background: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 20% 98%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(240 5% 64% / 0.05);
@@ -81,17 +81,17 @@ All colors MUST be HSL.
     --popover: 240 10% 6%;
     --popover-foreground: 42 100% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 0 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 43 74% 66%;
-    --secondary-foreground: 240 10% 4%;
+    --secondary: 258 100% 60%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 240 8% 12%;
     --muted-foreground: 240 5% 64%;
 
     --accent: 240 8% 12%;
-    --accent-foreground: 42 100% 98%;
+    --accent-foreground: 0 0% 98%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
@@ -99,25 +99,25 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 240 8% 18%;
     --input: 240 8% 18%;
-    --ring: 217 91% 60%;
+    --ring: 0 100% 50%;
 
     --sidebar-background: 240 10% 6%;
-    --sidebar-foreground: 42 100% 98%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 8% 12%;
-    --sidebar-accent-foreground: 42 100% 98%;
+    --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 8% 18%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 0 100% 50%;
 
     /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 50%));
-    --gradient-secondary: linear-gradient(135deg, hsl(43 74% 66%), hsl(43 74% 56%));
+    --gradient-primary: linear-gradient(135deg, hsl(0 100% 50%), hsl(258 100% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(258 100% 60%), hsl(258 100% 50%));
     --gradient-background: linear-gradient(135deg, hsl(240 10% 4%), hsl(240 8% 12%));
   }
 }
