@@ -202,31 +202,33 @@ export function RecentActivity() {
               return (
                 <div 
                   key={activity.id} 
-                  className={`flex items-center space-x-4 p-2 rounded-lg transition-all duration-300 ${
+                  className={`flex items-start space-x-3 p-2 rounded-lg transition-all duration-300 ${
                     isNew ? 'bg-primary/5 border border-primary/20 animate-pulse' : 'hover:bg-muted/50'
                   }`}
                 >
-                  <div className="relative">
-                    <Avatar className="h-8 w-8">
+                  <div className="relative flex-shrink-0">
+                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                       <AvatarImage src={activity.avatar} />
-                      <AvatarFallback>{activity.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      <AvatarFallback className="text-xs">{activity.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     {isNew && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse">
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-primary rounded-full animate-pulse">
                         <span className="sr-only">New activity</span>
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{getActivityIcon(activity.type)}</span>
-                      <p className="text-sm">
-                        <span className="font-medium">{activity.user}</span>{' '}
-                        {activity.action}{' '}
-                        <span className="font-medium">{activity.target}</span>
-                      </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs sm:text-sm">{getActivityIcon(activity.type)}</span>
+                        <p className="text-xs sm:text-sm">
+                          <span className="font-medium">{activity.user}</span>{' '}
+                          {activity.action}{' '}
+                          <span className="font-medium break-words">{activity.target}</span>
+                        </p>
+                      </div>
                       {isNew && (
-                        <Badge variant="outline" className="text-xs bg-primary/10">
+                        <Badge variant="outline" className="text-xs bg-primary/10 self-start">
                           NEW
                         </Badge>
                       )}

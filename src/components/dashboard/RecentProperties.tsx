@@ -40,19 +40,19 @@ export function RecentProperties() {
             <p className="text-muted-foreground text-center py-4">No properties yet</p>
           ) : (
             recentProperties.map((property) => (
-              <div key={property.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={property.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-2 sm:gap-0">
                 <div className="flex-1">
-                  <h4 className="font-medium">{property.title}</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <h4 className="font-medium text-sm sm:text-base">{property.title}</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {property.bedrooms} bed • {property.bathrooms} bath
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {property.address}, {property.city}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-lg">₹{property.price?.toLocaleString()}</p>
-                  <Badge variant={property.status === "available" ? "default" : "secondary"}>
+                <div className="text-left sm:text-right">
+                  <p className="font-semibold text-base sm:text-lg">₹{property.price?.toLocaleString()}</p>
+                  <Badge variant={property.status === "available" ? "default" : "secondary"} className="text-xs">
                     {property.status}
                   </Badge>
                 </div>

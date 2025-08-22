@@ -175,15 +175,15 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="h-16 border-b border-border/50 bg-card/50 backdrop-blur-sm px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
+    <header className="h-16 border-b border-border/50 bg-card/50 backdrop-blur-sm px-3 sm:px-6 flex items-center justify-between">
+      <div className="flex items-center gap-2 sm:gap-4 flex-1">
         <SidebarTrigger />
         
-        <div className="relative max-w-md">
+        <div className="relative flex-1 max-w-xs sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search properties, clients, or agents..."
-            className="pl-10 w-80 bg-background"
+            placeholder="Search..."
+            className="pl-10 w-full sm:w-80 bg-background text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -195,12 +195,12 @@ export function DashboardHeader() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1 sm:gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="default" size="sm" className="btn-gradient">
-              <Plus className="h-4 w-4 mr-2" />
-              Quick Add
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Quick Add</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
@@ -227,7 +227,7 @@ export function DashboardHeader() {
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
-          className="relative"
+          className="relative hidden sm:flex"
         >
           {theme === 'light' ? (
             <Moon className="h-4 w-4" />
@@ -255,7 +255,7 @@ export function DashboardHeader() {
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
+          <DropdownMenuContent align="end" className="w-80 sm:w-80 w-[90vw] max-h-96 overflow-y-auto">
             <div className="p-3 border-b flex items-center justify-between">
               <h4 className="font-medium">Recent Activity</h4>
               {unreadNotifications.length > 0 && (

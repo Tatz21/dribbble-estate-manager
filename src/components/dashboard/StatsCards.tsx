@@ -88,7 +88,7 @@ export function StatsCards() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
       {statsConfig.map((stat, index) => {
         const Icon = stat.icon;
         return (
@@ -99,16 +99,16 @@ export function StatsCards() {
                 : 'linear-gradient(135deg, hsl(var(--card)), hsl(var(--secondary) / 0.05))'
             }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              <Icon className={`h-4 w-4 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`} />
+              <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`} />
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold transition-all duration-500 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`}>
+            <CardContent className="p-3 sm:p-6">
+              <div className={`text-xl sm:text-2xl font-bold transition-all duration-500 ${index % 2 === 0 ? 'text-primary' : 'text-secondary'}`}>
                 {stat.value}
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                 <p className="text-xs text-muted-foreground">
                   {stat.description}
                 </p>
