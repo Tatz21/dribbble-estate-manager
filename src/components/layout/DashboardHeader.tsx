@@ -227,7 +227,7 @@ export function DashboardHeader() {
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
-          className="relative hidden sm:flex"
+          className="relative"
         >
           {theme === 'light' ? (
             <Moon className="h-4 w-4" />
